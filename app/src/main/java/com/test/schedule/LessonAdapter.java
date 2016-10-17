@@ -59,7 +59,7 @@ public class LessonAdapter extends BaseAdapter {
             TextView index = (TextView) convertView.findViewById(R.id.lessonNumber);
             index.setText(position + 1 + ".");
 
-        } else {
+        } else if (!lesson.isCanceled()) {
 
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.item_layout, null);
@@ -88,6 +88,21 @@ public class LessonAdapter extends BaseAdapter {
             } else {
                 eventBadge.setVisibility(View.GONE);
             }
+        } else {
+            if (convertView == null) {
+                convertView = inflater.inflate(R.layout.canceled_item_layout, null);
+            }
+
+            TextView lessonName = (TextView) convertView.findViewById(R.id.canceledLessonSubject);
+            TextView lessonTeacher = (TextView) convertView.findViewById(R.id.canceledLessonTeacher);
+            TextView lessonNumber = (TextView) convertView.findViewById(R.id.canceledLessonNumber);
+
+            lessonNumber.setText(lesson.getLessonNumber() + ".");
+            lessonName.setText(lesson.getSubject().getName());
+            lessonTeacher.setText(lesson.getTeacher().getName());
+
+            lessonName.setPaintFlags(lessonName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            lessonTeacher.setPaintFlags(lessonTeacher.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
         }
         return convertView;
     }

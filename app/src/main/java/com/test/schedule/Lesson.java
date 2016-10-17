@@ -22,6 +22,7 @@ public class Lesson {
 //    private Teacher orgTeacher;
     private boolean substitution = false;
     private int lessonNumber;
+    private boolean isCanceled;
 
     public Lesson(Subject subject, Teacher teacher, int lessonNumber) {
         this.subject = subject;
@@ -51,6 +52,7 @@ public class Lesson {
 //        Log.d(TAG, "Creating lesson from JSON:   " + data.toString());
         if (data.length() > 0) {
             this.substitution = data.getBoolean("IsSubstitutionClass");
+            this.isCanceled = data.getBoolean("IsCanceled");
             this.subject = new Subject(data.getJSONObject("Subject"));
             this.teacher = new Teacher(data.getJSONObject("Teacher"));
             if (substitution) {
@@ -86,5 +88,9 @@ public class Lesson {
 
     boolean isSubstitution() {
         return substitution;
+    }
+
+    public boolean isCanceled() {
+        return isCanceled;
     }
 }
