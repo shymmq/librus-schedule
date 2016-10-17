@@ -117,8 +117,8 @@ public class MainActivity extends AppCompatActivity {
                 mViewPager.setAdapter(mSectionsPagerAdapter);
                 tabLayout.setupWithViewPager(mViewPager);
                 Calendar calendar = Calendar.getInstance();
-//                int day = Math.min(calendar.get(Calendar.DAY_OF_WEEK) - 2, 4);
-                int day = 3;
+                int day = Math.min(calendar.get(Calendar.DAY_OF_WEEK) - 2, 4);
+//                int day = 3;
                 mViewPager.setCurrentItem(day, true);
             }
         });
