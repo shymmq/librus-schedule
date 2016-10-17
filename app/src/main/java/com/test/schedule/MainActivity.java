@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
@@ -115,6 +116,10 @@ public class MainActivity extends AppCompatActivity {
                 mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
                 mViewPager.setAdapter(mSectionsPagerAdapter);
                 tabLayout.setupWithViewPager(mViewPager);
+                Calendar calendar = Calendar.getInstance();
+//                int day = Math.min(calendar.get(Calendar.DAY_OF_WEEK) - 2, 4);
+                int day = 3;
+                mViewPager.setCurrentItem(day, true);
             }
         });
 
