@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="72dp">
+
+        <RelativeLayout
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:id="@+id/indexSquare">
+
+            <TextView
+                android:id="@+id/lessonNumber"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="sans-serif"
+                android:text="3."
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="38sp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"
+                android:gravity="center" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_alignRight="@+id/indexSquare"
+            android:id="@+id/rl"
+            android:layout_toEndOf="@+id/indexSquare">
+
+            <TextView
+                android:text="Brak zajęć"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/textView"
+                android:textStyle="normal|italic"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+</LinearLayout>
