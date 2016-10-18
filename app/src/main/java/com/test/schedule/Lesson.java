@@ -11,7 +11,7 @@ import java.io.Serializable;
  * Created by szyme on 15.10.2016.
  */
 
-public class Lesson {
+public class Lesson implements Serializable{
 
 
     private final String TAG = "schedule:log";

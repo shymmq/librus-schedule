@@ -2,6 +2,7 @@ package com.test.schedule;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +29,9 @@ public class TabFragment extends Fragment {
         LessonAdapter adapter;
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         SchoolDay schoolDay = getArguments().getParcelable("data");
-
+        Log.d(TAG, "onCreateView: Received data as parcelable");
+        assert schoolDay != null;
+        Log.d(TAG, "onCreateView: "+schoolDay.getLessons().keySet().toString());
         ListView list = (ListView) rootView.findViewById(R.id.listView);
         adapter = new LessonAdapter(schoolDay, getActivity());
         list.setAdapter(adapter);

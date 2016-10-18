@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Created by szyme on 15.10.2016.
  */
 
-public class Teacher{
+public class Teacher implements Serializable{
     String firstName,lastName;
 
     public Teacher(String firstName, String lastName) {

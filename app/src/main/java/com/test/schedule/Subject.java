@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Created by szyme on 15.10.2016.
  */
 
-public class Subject{
+public class Subject implements  Serializable{
     private String name;
 
     public Subject(String name) {
