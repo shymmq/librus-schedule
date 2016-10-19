@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager mViewPager;
     final int DAY_MS = 86400000;
     private boolean debug = true;
-    private final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
+
     private Timetable timetable;
 
     void log(String text) {
@@ -42,33 +42,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle extras = getIntent().getExtras();
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         long timeNow = System.currentTimeMillis();
         if (timeNow - prefs.getLong("lastUpdate", 0) < DAY_MS) {
             log("Loading from cache");
             display();
+        } else if (prefs.getBoolean("logged_in", false)) {
+            APIClient client = new APIClient(getApplicationContext());
+            Runnable onSuccess = new Runnable() {
+                @Override
+                public void run() {
+                    display();
+                }
+            };
+            client.update(onSuccess);
         } else {
-
-            if (extras != null && extras.containsKey("username") && extras.containsKey("password")) {
-                //if coming from LoginActivity
-                log("Found credentials from intent");
-                update(extras.getString("username"), extras.getString("password"));
-            } else if (prefs.contains("username") && prefs.contains("password")) {
-                //if credentials stored in prefs
-                log("Found credentials in SharedPreferences");
-                update(prefs.getString("username", null), prefs.getString("password", null));
-            } else {
-                log("Redirecting to LoginActivity");
-                Intent i = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(i);
-                finish();
-            }
-
+            log("Redirecting to LoginActivity");
+            Intent i = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(i);
+            finish();
         }
 
-
     }
+
 
     public Timetable loadTimetable() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -88,15 +85,8 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    void update(String username, String password) {
-        APIClient client = new APIClient(auth_token, username, password, getApplicationContext());
-        Runnable onSuccess = new Runnable() {
-            @Override
-            public void run() {
-                display();
-            }
-        };
-        client.update(onSuccess);
+    void update() {
+
     }
 
 

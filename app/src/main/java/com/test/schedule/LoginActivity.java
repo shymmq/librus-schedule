@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -49,16 +51,45 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putString("username", usernameInput.getText().toString());
-                editor.putString("password", passwordInput.getText().toString());
-                editor.apply();
-                Intent i = new Intent(LoginActivity.this, MainActivity.class);
-                i.putExtra("username", usernameInput.getText().toString());
-                i.putExtra("password", passwordInput.getText().toString());
-                startActivity(i);
-                finish();
+//                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+//                SharedPreferences.Editor editor = prefs.edit();
+//                editor.putString("username", usernameInput.getText().toString());
+//                editor.putString("password", passwordInput.getText().toString());
+//                editor.apply();
+                Runnable onSuccess = new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent i = new Intent(LoginActivity.this, MainActivity.class);
+//                i.putExtra("username", usernameInput.getText().toString());
+//                i.putExtra("password", passwordInput.getText().toString());
+                        startActivity(i);
+                        finish();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                progress.setVisibility(View.INVISIBLE);
+                            }
+                        });
+                    }
+                };
+                APIClient.Consumer onFailure = new APIClient.Consumer() {
+                    @Override
+                    public void run(Object result) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                progress.setVisibility(View.INVISIBLE);
+                            }
+                        });
+                        Snackbar snackbar = Snackbar
+                                .make(findViewById(R.id.coordinator), "Nieprawidłowe hasło, spróbuj ponownie", Snackbar.LENGTH_SHORT);
+
+                        snackbar.show();
+                        Log.d(TAG, "run: login failure, code " + (int) result);
+                    }
+                };
+                APIClient.login(usernameInput.getText().toString(), passwordInput.getText().toString(), onSuccess, onFailure, getApplicationContext());
+                progress.setVisibility(View.VISIBLE);
             }
         });
 

@@ -29,18 +29,16 @@ import java.util.concurrent.CountDownLatch;
 public class APIClient {
     private final String BASE_URL = "https://api.librus.pl/2.0";
     private final String AUTH_URL = "https://api.librus.pl/OAuth/Token";
-    private String auth_token;
-    private String username, password, access_token;
+    private String access_token = null;
+    private String refresh_token = null;
     private long valid_until = 0;
     private Context context;
     private OkHttpClient client = new OkHttpClient();
     private boolean debug = true;
     private final String TAG = "schedule:log";
+    private final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
 
-    public APIClient(String _auth_token, String _username, String _password, Context _context) {
-        auth_token = _auth_token;
-        username = _username;
-        password = _password;
+    public APIClient(Context _context) {
         context = _context;
     }
 
@@ -55,7 +53,8 @@ public class APIClient {
     }
 
     private void APIRequest(final String endpoint, final Consumer onSuccess) {
-        Consumer onGetToken = new Consumer() {
+
+        Consumer onRefresh = new Consumer() {
             @Override
             public void run(Object result) {
                 Request request = new Request.Builder().addHeader("Authorization", "Bearer " + result)
@@ -82,43 +81,95 @@ public class APIClient {
             }
         };
 
-        getAccessToken(onGetToken);
+        refreshAccess(onRefresh);
 
     }
 
-    private void getAccessToken(final Consumer onSuccess) {
+    static void login(String username, String password, final Runnable onSuccess, final Consumer onFailure, final Context c) {
+        final String AUTH_URL = "https://api.librus.pl/OAuth/Token";
+        final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(AUTH_URL)
+                .header("Authorization", "Basic " + auth_token)
+                .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), "username=" + username + "&password=" + password + "&grant_type=password&librus_long_term_token=1"))
+                .build();
 
-        if (System.currentTimeMillis() < valid_until) {
-            onSuccess.run(access_token);
-        } else {
-            Request request = new Request.Builder()
-                    .url(AUTH_URL)
-                    .header("Authorization", "Basic " + auth_token)
-                    .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), "username=" + username + "&password=" + password + "&grant_type=password&librus_long_term_token=1"))
-                    .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                e.printStackTrace();
+            }
 
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Request request, IOException e) {
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (!response.isSuccessful())
+                    onFailure.run(response.code());
+                try {
+                    JSONObject responseJSON = new JSONObject(response.body().string());
+
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(c).edit();
+
+                    editor.putString("refresh_token", responseJSON.getString("refresh_token"));
+                    editor.putString("access_token", responseJSON.getString("access_token"));
+                    editor.putLong("valid_until", System.currentTimeMillis() + responseJSON.getLong("expires_in"));
+                    editor.putBoolean("logged_in",true);
+                    editor.commit();
+                    onSuccess.run();
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
+            }
+        });
+    }
 
-                @Override
-                public void onResponse(Response response) throws IOException {
-                    if (!response.isSuccessful())
-                        throw new IOException("Unexpected code " + response);
-                    try {
-                        JSONObject responseJSON = new JSONObject(response.body().string());
-                        String _access_token = responseJSON.getString("access_token");
-                        valid_until = System.currentTimeMillis() + responseJSON.getLong("expires_in");
-                        access_token = _access_token;
-                        onSuccess.run(_access_token);
-                    } catch (JSONException e) {
+    private void refreshAccess(final Consumer onSuccess) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (!prefs.contains("valid_until") || !prefs.contains("access_token") || !prefs.contains("refresh_token")) {
+            throw new Error("Client not logged in");
+        } else {
+            valid_until = prefs.getLong("valid_until", 0);
+            if (valid_until < System.currentTimeMillis()) {
+                //request access with refresh_token
+                refresh_token = prefs.getString("refresh_token", null);
+
+                Request request = new Request.Builder()
+                        .url(AUTH_URL)
+                        .header("Authorization", "Basic " + auth_token)
+                        .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), "refresh_token=" + refresh_token + "&grant_type=refresh_token&librus_long_term_token=1"))
+                        .build();
+
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Request request, IOException e) {
                         e.printStackTrace();
                     }
-                }
-            });
+
+                    @Override
+                    public void onResponse(Response response) throws IOException {
+                        if (!response.isSuccessful())
+                            try {
+                                JSONObject responseJSON = new JSONObject(response.body().string());
+
+                                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+
+                                editor.putString("refresh_token", responseJSON.getString("refresh_token"));
+                                editor.putString("access_token", responseJSON.getString("access_token"));
+                                editor.putLong("valid_until", System.currentTimeMillis() + responseJSON.getLong("expires_in"));
+                                editor.commit();
+                                onSuccess.run(access_token);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                    }
+                });
+            } else {
+                //return current access_token
+                access_token = prefs.getString("access_token", null);
+                onSuccess.run(access_token);
+            }
         }
+
     }
 
     private void getEventCategories(final Consumer onSuccess) {
@@ -209,7 +260,7 @@ public class APIClient {
         //get current week start date
         Calendar calendar = Calendar.getInstance();
         calendar.setFirstDayOfWeek(Calendar.MONDAY);
-        calendar.add(Calendar.DAY_OF_YEAR,2);
+        calendar.add(Calendar.DAY_OF_YEAR, 2);
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         final String weekStart = df.format(calendar.getTime());
@@ -235,14 +286,14 @@ public class APIClient {
         APIRequest("/Timetables?weekStart=" + weekStart, onDownloaded);
     }
 
-    public void largeLog(String content) {
-        if (content.length() > 4000) {
-            Log.d(TAG, content.substring(0, 4000));
-            largeLog(content.substring(4000));
-        } else {
-            Log.d(TAG, content);
-        }
-    }
+//    public void largeLog(String content) {
+//        if (content.length() > 4000) {
+//            Log.d(TAG, content.substring(0, 4000));
+//            largeLog(content.substring(4000));
+//        } else {
+//            Log.d(TAG, content);
+//        }
+//    }
 
     public void update(Runnable onSuccess) {
         final CountDownLatch latch = new CountDownLatch(2);
