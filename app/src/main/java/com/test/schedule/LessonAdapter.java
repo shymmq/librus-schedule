@@ -1,6 +1,7 @@
 package com.test.schedule;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -8,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -109,6 +111,10 @@ public class LessonAdapter extends BaseAdapter {
             } else if (LocalDate.now().equals(lesson.getDate()) && LocalTime.now().isAfter(lesson.getEndTime())) {
                 convertView.setAlpha(0.35f);
             }
+//            else {
+//                FrameLayout background = (FrameLayout) convertView.findViewById(R.id.background);
+//                background.setBackgroundColor(Color.argb(10, 0, 0, 0));
+//            }
         }
         return convertView;
     }
