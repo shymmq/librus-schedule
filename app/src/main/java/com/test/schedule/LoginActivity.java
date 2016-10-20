@@ -34,7 +34,6 @@ public class LoginActivity extends AppCompatActivity {
     //    private OkHttpClient client = new OkHttpClient();
     private final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

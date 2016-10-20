@@ -2,16 +2,28 @@ package com.test.schedule;
 
 import android.util.Log;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.Hours;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by szyme on 15.10.2016.
  */
 
-public class Lesson implements Serializable{
+public class Lesson implements Serializable {
 
 
     private final String TAG = "schedule:log";
@@ -23,13 +35,9 @@ public class Lesson implements Serializable{
     private boolean substitution = false;
     private int lessonNumber;
     private boolean isCanceled;
-
-    public Lesson(Subject subject, Teacher teacher, int lessonNumber) {
-        this.subject = subject;
-        this.teacher = teacher;
-        this.lessonNumber = lessonNumber;
-        this.substitution = false;
-    }
+    //    private DateTime dateTime;
+    private LocalDate date;
+    private LocalTime endTime;
 
     Event getEvent() {
         return event;
@@ -47,7 +55,7 @@ public class Lesson implements Serializable{
 //        this.substitution = true;
 //    }
 
-    Lesson(JSONObject data, int lessonNumber) throws JSONException {
+    Lesson(JSONObject data, int lessonNumber) throws JSONException, ParseException {
         this.lessonNumber = lessonNumber;
 //        Log.d(TAG, "Creating lesson from JSON:   " + data.toString());
         if (data.length() > 0) {
@@ -55,14 +63,24 @@ public class Lesson implements Serializable{
             this.isCanceled = data.getBoolean("IsCanceled");
             this.subject = new Subject(data.getJSONObject("Subject"));
             this.teacher = new Teacher(data.getJSONObject("Teacher"));
-            if (substitution) {
+            endTime = LocalTime.parse(data.getString("HourTo"), DateTimeFormat.forPattern("HH:mm"));
+            date = LocalDate.now().withDayOfWeek(Integer.parseInt(data.getString("DayNo")));
+        }
+        if (substitution) {
 //                this.orgTeacher = new Teacher(data.getJSONObject("orgTeacher"));
 //                this.orgSubject = new Subject(data.getJSONObject("orgSubject"));
-            } else {
+        } else {
 //                this.orgSubject = this.subject;
 //                this.orgTeacher = this.teacher;
-            }
         }
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
     }
 
     int getLessonNumber() {

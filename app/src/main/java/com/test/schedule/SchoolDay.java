@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class SchoolDay implements Parcelable {
                 } else {
                     lessons.put(i, new Lesson(data.getJSONArray(i).getJSONObject(0), i));
                 }
-            } catch (JSONException e) {
+            } catch (JSONException | ParseException e) {
                 e.printStackTrace();
             }
         }
