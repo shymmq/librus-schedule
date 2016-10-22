@@ -106,9 +106,7 @@ public class LessonAdapter extends BaseAdapter {
             } else {
                 badge.setVisibility(View.GONE);
             }
-            if (LocalDate.now().isAfter(lesson.getDate())) {
-                convertView.setAlpha(0.35f);
-            } else if (LocalDate.now().equals(lesson.getDate()) && LocalTime.now().isAfter(lesson.getEndTime())) {
+            if (LocalDate.now().equals(lesson.getDate()) && LocalTime.now().isAfter(lesson.getEndTime())) {
                 convertView.setAlpha(0.35f);
             }
 //            else {

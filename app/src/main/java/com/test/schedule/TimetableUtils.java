@@ -46,20 +46,22 @@ public class TimetableUtils {
 
     static String getTitle(LocalDate date) {
 
-//        final String TAG = "schedule:log";
+        final String TAG = "schedule:log";
 
-//        LocalDate now = LocalDate.now();
-//        int diff = Days.daysBetween(now, date).getDays();
-//
-//        Log.d(TAG, "getTitle: diff= " + diff);
-//        if (diff == -1) {
-//            return "Wczoraj";
-//        } else if (diff == 0) {
-//            return "Dzisiaj";
-//        } else if (diff == 1) {
-//            return "Jutro";
-//        } else {
-        return date.dayOfWeek().getAsText(Locale.US);
-//        }
+        LocalDate now = LocalDate.now();
+        int diff = Days.daysBetween(now, date).getDays();
+
+        Log.d(TAG, "getTitle: diff= " + diff);
+        if (diff == -1) {
+            return "Wczoraj";
+        } else if (diff == 0) {
+            return "Dzisiaj";
+        } else if (diff == 1) {
+            return "Jutro";
+        } else if (diff < 7) {
+            return date.dayOfWeek().getAsText(new Locale("pl"));
+        } else {
+            return date.toString("d MMM", new Locale("pl"));
+        }
     }
 }
