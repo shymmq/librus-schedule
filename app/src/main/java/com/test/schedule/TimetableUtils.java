@@ -25,9 +25,13 @@ public class TimetableUtils {
         }
     }
 
+    static LocalDate getWeekStart() {
+        return LocalDate.now().plusDays(2).withDayOfWeek(DateTimeConstants.MONDAY);
+    }
+
     static int getDayCount() {
         int dayOfWeek = LocalDate.now().getDayOfWeek();
-        int res = 10 - (Days.daysBetween(getStartDate(), LocalDate.now()).getDays());
+        int res = 10 - (Days.daysBetween(getWeekStart(), LocalDate.now()).getDays());
         return dayOfWeek == DateTimeConstants.SATURDAY || dayOfWeek == DateTimeConstants.SUNDAY ? res - 2 : res;
     }
 
@@ -58,10 +62,10 @@ public class TimetableUtils {
             return "Dzisiaj";
         } else if (diff == 1) {
             return "Jutro";
-        } else if (diff < 7) {
+        } else if (date.withDayOfWeek(1) == now.withDayOfWeek(1)) {
             return date.dayOfWeek().getAsText(new Locale("pl"));
         } else {
-            return date.toString("d MMM", new Locale("pl"));
+            return date.toString("d MMM.", new Locale("pl"));
         }
     }
 }

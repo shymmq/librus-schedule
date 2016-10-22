@@ -324,7 +324,7 @@ public class APIClient {
                 latch.countDown();
             }
         };
-        getTimetable(countDown, TimetableUtils.getStartDate(), TimetableUtils.getStartDate().plusWeeks(1));
+        getTimetable(countDown, TimetableUtils.getWeekStart(), TimetableUtils.getWeekStart().plusWeeks(1));
         getEvents(countDown);
         log("Waiting for all tasks to finish..");
         try {
