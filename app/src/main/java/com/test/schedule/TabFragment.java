@@ -26,15 +26,18 @@ public class TabFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        LessonAdapter adapter;
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         SchoolDay schoolDay = getArguments().getParcelable("data");
-        Log.d(TAG, "onCreateView: Received data as parcelable");
-        assert schoolDay != null;
-        Log.d(TAG, "onCreateView: "+schoolDay.getLessons().keySet().toString());
-        ListView list = (ListView) rootView.findViewById(R.id.listView);
-        adapter = new LessonAdapter(schoolDay, getActivity());
-        list.setAdapter(adapter);
-        return rootView;
+
+        if (schoolDay == null || schoolDay.isEmpty()) {
+            View rootView = inflater.inflate(R.layout.fragment_empty, container, false);
+            return rootView;
+        } else {
+            LessonAdapter adapter;
+            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            ListView list = (ListView) rootView.findViewById(R.id.listView);
+            adapter = new LessonAdapter(schoolDay, getActivity());
+            list.setAdapter(adapter);
+            return rootView;
+        }
     }
 }

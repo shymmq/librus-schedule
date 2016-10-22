@@ -5,6 +5,7 @@ import android.os.Parcelable;
 import android.util.ArrayMap;
 import android.util.Log;
 
+import org.joda.time.LocalDate;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,27 +23,17 @@ import java.util.StringTokenizer;
 
 public class SchoolDay implements Parcelable {
     private final String TAG = "schedule:log";
-    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
-        public SchoolDay createFromParcel(Parcel in) {
-            return new SchoolDay(in);
-        }
-
-        @Override
-        public SchoolDay[] newArray(int size) {
-            return new SchoolDay[size];
-        }
-    };
+    private final LocalDate date;
     private HashMap<Integer, Lesson> lessons = new HashMap<>();
-    private int dayNumber;
+    boolean empty = true;
 
-    public SchoolDay(HashMap<Integer, Lesson> lessons, int dayNumber) {
+    public SchoolDay(HashMap<Integer, Lesson> lessons, LocalDate date) {
         this.lessons = lessons;
-        this.dayNumber = dayNumber;
+        this.date = date;
     }
 
-    public SchoolDay(JSONArray data, int dayNumber) {
-        Log.d(TAG, "SchoolDay: Creating schoolday from JSON " + data.toString());
-        this.dayNumber = dayNumber;
+    public SchoolDay(JSONArray data, LocalDate date) {
+        this.date = date;
         for (int i = 0; i < data.length(); i++) {
             try {
                 if (data.getJSONArray(i).length() == 0) {
@@ -50,6 +41,7 @@ public class SchoolDay implements Parcelable {
                     lessons.put(i, null);
                 } else {
                     lessons.put(i, new Lesson(data.getJSONArray(i).getJSONObject(0), i));
+                    empty = false;
                 }
             } catch (JSONException | ParseException e) {
                 e.printStackTrace();
@@ -60,7 +52,7 @@ public class SchoolDay implements Parcelable {
 
     public SchoolDay(Parcel in) {
         in.readMap(this.lessons, null);
-        this.dayNumber = in.readInt();
+        this.date = LocalDate.parse(in.readString());
     }
 
     private void cleanUp() {
@@ -72,30 +64,11 @@ public class SchoolDay implements Parcelable {
             lessons.remove(index);
             index--;
         }
-        Log.d(TAG, "cleanUp: DONE: " + lessons.toString());
+//        Log.d(TAG, "cleanUp: DONE: " + lessons.toString());
     }
 
-    public int getDayNumber() {
-        return dayNumber;
-    }
-
-    public String getDayName() {
-        switch (dayNumber) {
-            case 0:
-                return "Poniedziałek";
-            case 1:
-                return "Wtorek";
-            case 2:
-                return "Środa";
-            case 3:
-                return "Czwartek";
-            case 4:
-                return "Piątek";
-            case 5:
-                return "Sobota";
-            case 6:
-                return "Niedziela";
-        }
+    public String getTitle() {
+        TimetableUtils.getTitle(date);
         return null;
     }
 
@@ -107,6 +80,21 @@ public class SchoolDay implements Parcelable {
         return lessons.get(i);
     }
 
+    public boolean isEmpty() {
+        return empty;
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public SchoolDay createFromParcel(Parcel in) {
+            return new SchoolDay(in);
+        }
+
+        @Override
+        public SchoolDay[] newArray(int size) {
+            return new SchoolDay[size];
+        }
+    };
+
     @Override
     public int describeContents() {
         return 0;
@@ -116,7 +104,7 @@ public class SchoolDay implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         try {
             dest.writeMap(this.lessons);
-            dest.writeInt(this.dayNumber);
+            dest.writeString(this.date.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -12,6 +12,9 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,6 +23,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -113,7 +117,7 @@ public class APIClient {
                     editor.putString("refresh_token", responseJSON.getString("refresh_token"));
                     editor.putString("access_token", responseJSON.getString("access_token"));
                     editor.putLong("valid_until", System.currentTimeMillis() + responseJSON.getLong("expires_in"));
-                    editor.putBoolean("logged_in",true);
+                    editor.putBoolean("logged_in", true);
                     editor.commit();
                     onSuccess.run();
                 } catch (JSONException e) {
@@ -125,11 +129,11 @@ public class APIClient {
 
     private void refreshAccess(final Consumer onSuccess) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        if (!prefs.contains("valid_until") || !prefs.contains("access_token") || !prefs.contains("refresh_token")) {
+        if (!prefs.contains("refresh_token")) {
             throw new Error("Client not logged in");
         } else {
-            valid_until = prefs.getLong("valid_until", 0);
-            if (valid_until < System.currentTimeMillis()) {
+            if (
+                    !prefs.contains("valid_until") || !prefs.contains("access_token") || prefs.getLong("valid_until", 0) < System.currentTimeMillis()) {
                 //request access with refresh_token
                 refresh_token = prefs.getString("refresh_token", null);
 
@@ -236,16 +240,19 @@ public class APIClient {
             JSONObject categories = new JSONObject(prefs.getString("categories", "{}"));
             JSONObject events = new JSONObject(prefs.getString("event_entries", "{}"));
             JSONArray eventArray = events.getJSONArray("HomeWorks");
-            JSONArray res = new JSONArray();
+            JSONObject res = new JSONObject();
             for (int eventIndex = 0; eventIndex < eventArray.length(); eventIndex++) {
                 JSONObject event = eventArray.getJSONObject(eventIndex);
-                int categoryId = event.getJSONObject("Category").getInt("Id");
                 JSONObject resEvent = new JSONObject();
+                int categoryId = event.getJSONObject("Category").getInt("Id");
+                String date = event.getString("Date");
                 resEvent.put("Category", categories.get(String.valueOf(categoryId)));
                 resEvent.put("Description", event.getString("Content"));
                 resEvent.put("LessonNo", event.getString("LessonNo"));
-                resEvent.put("Date", event.getString("Date"));
-                res.put(resEvent);
+                if (!res.has(date)) {
+                    res.put(date, new JSONArray());
+                }
+                res.getJSONArray(date).put(resEvent);
             }
             log("Resolved events:   " + res.toString());
             prefs.edit().putString("events", res.toString()).commit();
@@ -256,34 +263,48 @@ public class APIClient {
 
     }
 
-    public void getTimetable(final Consumer onSuccess) {
+    public void getTimetable(final Consumer onSuccess, LocalDate... weeks) {
         //get current week start date
-        Calendar calendar = Calendar.getInstance();
-        calendar.setFirstDayOfWeek(Calendar.MONDAY);
-        calendar.add(Calendar.DAY_OF_YEAR, 2);
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        final String weekStart = df.format(calendar.getTime());
-
+        final CountDownLatch timetablesLatch = new CountDownLatch(weeks.length);
+        final JSONObject timetable = new JSONObject();
         Consumer onDownloaded = new Consumer() {
             @Override
             public void run(Object result) {
-                JSONObject data = (JSONObject) result;
-
                 try {
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-                    editor.putString("timetable", String.valueOf((data.getJSONObject("Timetable"))));
-                    editor.putString("week_start", weekStart);
-                    editor.commit();
+                    JSONObject data = ((JSONObject) result).getJSONObject("Timetable");
+                    Iterator iterator = data.keys();
 
+                    while (iterator.hasNext()) {
 
+                        String key = (String) iterator.next();
+                        timetable.put(key, data.getJSONArray(key));
+
+                    }
+                    timetablesLatch.countDown();
+                    onSuccess.run(data);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                onSuccess.run(data);
             }
         };
-        APIRequest("/Timetables?weekStart=" + weekStart, onDownloaded);
+
+        for (LocalDate weekStart : weeks) {
+            APIRequest("/Timetables?weekStart=" + weekStart.toString("yyyy-MM-dd"), onDownloaded);
+            log("Requested timetable for " + weekStart.toString("yyyy-MM-dd"));
+        }
+
+        try {
+            log("Waiting for timetables to download (" + weeks.length + ")");
+            timetablesLatch.await();
+            log("Timetables downloaded");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putString("timetable", timetable.toString());
+        editor.commit();
+        onSuccess.run(timetable);
     }
 
 //    public void largeLog(String content) {
@@ -303,7 +324,7 @@ public class APIClient {
                 latch.countDown();
             }
         };
-        getTimetable(countDown);
+        getTimetable(countDown, TimetableUtils.getStartDate(), TimetableUtils.getStartDate().plusWeeks(1));
         getEvents(countDown);
         log("Waiting for all tasks to finish..");
         try {

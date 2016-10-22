@@ -15,6 +15,8 @@ import android.util.Log;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
+import org.joda.time.DateTimeConstants;
+import org.joda.time.LocalDate;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,9 +29,9 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private SectionsPagerAdapter sectionsPagerAdapter;
     private final String TAG = "schedule:log";
-    private ViewPager mViewPager;
+    private ViewPager viewPager;
     final int DAY_MS = 86400000;
     private boolean debug = true;
 
@@ -73,22 +75,15 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         try {
-            JSONArray eventsJson = new JSONArray(prefs.getString("events", ""));
-            JSONObject timetableJson = new JSONObject(prefs.getString("timetable", ""));
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-            Date weekStart = df.parse(prefs.getString("week_start", null));
-            Timetable res = new Timetable(timetableJson, weekStart);
-            res.setEvents(eventsJson);
+            JSONObject eventsJSON = new JSONObject(prefs.getString("events", ""));
+            JSONObject timetableJSON = new JSONObject(prefs.getString("timetable", ""));
+            Timetable res = new Timetable(timetableJSON, eventsJSON);
             log("loaded timetable from sharedprefs");
             return res;
-        } catch (JSONException | ParseException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
         return null;
-    }
-
-    void update() {
-
     }
 
 
@@ -96,22 +91,25 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                log("Loading timetable...");
                 timetable = loadTimetable();
-                log("Timetable loaded, starting MainActivity");
+
                 setTheme(R.style.AppTheme_NoActionBar);
                 setContentView(R.layout.activity_main);
-                mViewPager = (ViewPager) findViewById(R.id.container);
+
+                viewPager = (ViewPager) findViewById(R.id.container);
                 Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
                 TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+
                 setSupportActionBar(toolbar);
-                mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-                mViewPager.setAdapter(mSectionsPagerAdapter);
-                tabLayout.setupWithViewPager(mViewPager);
-                Calendar calendar = Calendar.getInstance();
-                int day = Math.min(calendar.get(Calendar.DAY_OF_WEEK) - 2, 4);
-//                int day = 3;
-                mViewPager.setCurrentItem(day, true);
+
+                sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+                viewPager.setAdapter(sectionsPagerAdapter);
+                tabLayout.setupWithViewPager(viewPager);
+
+                viewPager.setCurrentItem(0, true);
+
+                log("Tab count : " + TimetableUtils.getDayCount());
+                log("Start date : "+TimetableUtils.getStartDate());
             }
         });
 
@@ -125,33 +123,20 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return TabFragment.newInstance(timetable.getSchoolDay(position));
+            LocalDate date = TimetableUtils.getTabDate(position);
+            log("Creating TabFragment for day " + date.toString("yyyy-MM-dd")+" at position "+ position);
+            return TabFragment.newInstance(timetable.getSchoolDay(date));
         }
 
         @Override
         public int getCount() {
-            return 5;
+            return TimetableUtils.getDayCount();
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "Poniedziałek";
-                case 1:
-                    return "Wtorek";
-                case 2:
-                    return "Środa";
-                case 3:
-                    return "Czwartek";
-                case 4:
-                    return "Piątek";
-                case 5:
-                    return "Sobota";
-                case 6:
-                    return "Niedziela";
-            }
-            return null;
+            ;
+            return TimetableUtils.getTabTitle(position);
         }
     }
 }

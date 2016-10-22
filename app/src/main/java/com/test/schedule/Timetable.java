@@ -2,8 +2,10 @@ package com.test.schedule;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.ArrayMap;
 import android.util.Log;
 
+import org.joda.time.LocalDate;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,77 +17,62 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by szyme on 15.10.2016.
  */
 
 public class Timetable {
-    private List<SchoolDay> timetable = new ArrayList<>();
-    private Date startDate;
+    private Map<LocalDate, SchoolDay> timetable = new ArrayMap<>();
     private final String TAG = "schedule:log";
 
-    public Timetable(JSONObject data, Date startDate) {
-        parseJSON(data, startDate);
-    }
-
-    private void parseJSON(JSONObject data, Date startDate) {
-        this.startDate = startDate;
-        Calendar calendar = Calendar.getInstance();
-        calendar.setFirstDayOfWeek(Calendar.MONDAY);
-        calendar.setTime(startDate);
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        String date;
-        for (int dayNumber = 0; dayNumber < data.length(); dayNumber++) {
-            calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY + dayNumber);
-
-            date = df.format(calendar.getTime());
-            try {
-                timetable.add(dayNumber, new SchoolDay(data.getJSONArray(date), dayNumber));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+    public Timetable(JSONObject data, JSONObject events) {
+        try {
+            parseJSON(data, events);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
-    void setEvents(JSONArray events) {
-        for (int i = 0; i < events.length(); i++) {
-            try {
-                JSONObject event = events.getJSONObject(i);
+    private void parseJSON(JSONObject data, JSONObject events) throws JSONException {
 
-                DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-                Date date = df.parse(event.getString("Date"));
-                Calendar calendar = Calendar.getInstance();
-                calendar.setFirstDayOfWeek(Calendar.MONDAY);
+        Iterator iterator = data.keys();
 
-                calendar.setTime(date);
-                int weekDay = calendar.get(Calendar.DAY_OF_WEEK) - 2 % 7;
+        while (iterator.hasNext()) {
 
-                calendar.setTime(startDate);
-                calendar.add(Calendar.DAY_OF_YEAR, 7);
-                Date endDate = calendar.getTime();
+            String key = (String) iterator.next();
+            LocalDate date = LocalDate.parse(key);
+            SchoolDay schoolDay = new SchoolDay(data.getJSONArray(key), date);
 
-                int lessonNumber = event.getInt("LessonNo");
+            if (!schoolDay.isEmpty()) {
 
-                Lesson lesson = getSchoolDay(weekDay).getLesson(lessonNumber);
+                if (events.has(key)) {
 
-                if (lesson != null && !date.before(startDate) && date.before(endDate)) {
-                    Log.d(TAG, "setEvents: Setting event for " + getSchoolDay(weekDay).getDayName() + " at lesson " + lessonNumber);
-                    lesson.setEvent(new Event(event.getString("Description"), event.getString("Category")));
+                    for (int i = 0; i < events.getJSONArray(key).length(); i++) {
+
+                        JSONObject event = events.getJSONArray(key).getJSONObject(i);
+
+                        Lesson lesson = schoolDay.getLesson(event.getInt("LessonNo"));
+
+                        if (lesson != null) {
+                            lesson.setEvent(new Event(event.getString("Description"), event.getString("Category")));
+                        }
+
+                    }
                 }
-
-            } catch (JSONException | ParseException e) {
-                e.printStackTrace();
+                timetable.put(date, schoolDay);
             }
         }
     }
 
-    public List<SchoolDay> getTimetable() {
+    public Map<LocalDate, SchoolDay> getTimetable() {
         return timetable;
     }
 
-    public SchoolDay getSchoolDay(int i) {
-        return timetable.get(i);
+    public SchoolDay getSchoolDay(LocalDate date) {
+        return timetable.get(date);
     }
 }
