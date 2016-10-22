@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Ogólne" >
+
+        <SwitchPreference
+            android:key="greyOutFinishedLessons"
+            android:title="Wyszarzaj zakończone lekcje"
+            android:summaryOn="Zakończone lekcje będą przyciemnione."
+            android:summaryOff="Zakończone lekcje nie będą przyciemnione."
+            android:defaultValue="1" />
+
+        <SwitchPreference
+            android:key="showDividers"
+            android:title="Pokaż granice tabeli"
+            android:summaryOn="Dividery będą widoczne."
+            android:summaryOff="Dividery nie będą widoczne."
+            android:defaultValue="1" />
+
+        <SwitchPreference
+            android:key="useRelativeTabNames"
+            android:title="Wczoraj, dzisiaj i jutro"
+            android:summaryOn="Relatywne nazwy zakładek będą używane."
+            android:summaryOff="Relatywne nazwy zakładek nie będą używane." />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Zaawansowane" >
+
+        <SwitchPreference
+            android:enabled="false"
+            android:key="showNotifications"
+            android:title="Pokaż powiadomienia"
+            android:summaryOn="Powiadomienia będą pokazywane."
+            android:summaryOff="Powiadomienia nie będą pokazywane."
+            android:defaultValue="0"/>
+    </PreferenceCategory>
+</PreferenceScreen>

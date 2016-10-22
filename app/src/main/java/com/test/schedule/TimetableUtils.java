@@ -1,6 +1,6 @@
 package com.test.schedule;
 
-import android.app.admin.DeviceAdminInfo;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.joda.time.DateTimeConstants;
@@ -62,7 +62,7 @@ public class TimetableUtils {
             return "Dzisiaj";
         } else if (diff == 1) {
             return "Jutro";
-        } else if (date.withDayOfWeek(1) == now.withDayOfWeek(1)) {
+        } else if (date.withDayOfWeek(1).getDayOfYear() == now.withDayOfWeek(1).getDayOfYear()) {
             return date.dayOfWeek().getAsText(new Locale("pl"));
         } else {
             return date.toString("d MMM.", new Locale("pl"));

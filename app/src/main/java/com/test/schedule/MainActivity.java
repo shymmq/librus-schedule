@@ -12,20 +12,16 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
-import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -86,6 +82,40 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        APIClient c = new APIClient(getApplicationContext());
+        switch (item.getItemId()) {
+            case R.id.action_logout:
+                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                SharedPreferences.Editor prefsEditor = sp.edit();
+                prefsEditor.putBoolean("logged_in", false);
+                prefsEditor.remove("access_token");
+                prefsEditor.remove("refresh_token");
+                prefsEditor.remove("lastUpdate");
+                prefsEditor.commit();
+                Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(i);
+                return true;
+            case R.id.action_settings:
+                Intent j = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(j);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    void update() {
+
+    }
 
     void display() {
         runOnUiThread(new Runnable() {
@@ -109,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                 viewPager.setCurrentItem(0, true);
 
                 log("Tab count : " + TimetableUtils.getDayCount());
-                log("Start date : "+TimetableUtils.getStartDate());
+                log("Start date : " + TimetableUtils.getStartDate());
             }
         });
 
@@ -124,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             LocalDate date = TimetableUtils.getTabDate(position);
-            log("Creating TabFragment for day " + date.toString("yyyy-MM-dd")+" at position "+ position);
+            log("Creating TabFragment for day " + date.toString("yyyy-MM-dd") + " at position " + position);
             return TabFragment.newInstance(timetable.getSchoolDay(date));
         }
 
