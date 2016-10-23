@@ -1,20 +1,20 @@
 package com.test.schedule;
 
-import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
 public class TabFragment extends Fragment {
+    private static final String TAG = "schedule:log";
+
     public TabFragment() {
     }
-
-    private static final String TAG = "schedule:log";
 
     public static TabFragment newInstance(SchoolDay data) {
         TabFragment fragment = new TabFragment();
@@ -39,6 +39,9 @@ public class TabFragment extends Fragment {
             if (!PreferenceManager.getDefaultSharedPreferences(this.getContext()).getBoolean("showDividers", true)) {
                 list.setDivider(null);
                 list.setDividerHeight(0);
+            } else {
+                list.setDividerHeight(4);
+                list.setDivider(new ColorDrawable(Color.RED));
             }
             adapter = new LessonAdapter(schoolDay, getActivity());
             list.setAdapter(adapter);
