@@ -2,6 +2,7 @@ package com.test.schedule;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -21,6 +22,8 @@ public class SettingsActivity extends PreferenceActivity {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean("settings_changed", true);
+            EditTextPreference lastSyncEdit = (EditTextPreference)findPreference("lastSynchronization");
+            lastSyncEdit.setTitle("Ostatnia synchronizacja: " + prefs.getString("lastSynchronization", null));
             editor.commit();
         }
     }

@@ -39,9 +39,6 @@ public class TabFragment extends Fragment {
             if (!PreferenceManager.getDefaultSharedPreferences(this.getContext()).getBoolean("showDividers", true)) {
                 list.setDivider(null);
                 list.setDividerHeight(0);
-            } else {
-                list.setDividerHeight(4);
-                list.setDivider(new ColorDrawable(Color.RED));
             }
             adapter = new LessonAdapter(schoolDay, getActivity());
             list.setAdapter(adapter);

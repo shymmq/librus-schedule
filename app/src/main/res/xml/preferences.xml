@@ -29,6 +29,11 @@
             android:summaryOn="24 Paź., 25 Paź., 26 Paź. itd."
             android:summaryOff="Poniedziałek, Wtorek, Środa itd."
             android:title="Daty zamiast dni tygodnia" />
+        <EditTextPreference
+            android:key="lastSynchronization"
+            android:id="@+id/edit_lastSync"
+            android:title="Ostatnia synchronizacja: "
+            android:enabled="false"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="Zaawansowane">
 

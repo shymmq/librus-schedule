@@ -18,9 +18,12 @@ import android.view.MenuItem;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -43,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         JodaTimeAndroid.init(this);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = prefs.edit();
+        String syncDate = prefs.getString("lastSynchronization", null);
         long timeNow = System.currentTimeMillis();
         if (timeNow - prefs.getLong("lastUpdate", 0) < DAY_MS) {
             log("Loading from cache");
@@ -56,13 +61,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
             client.update(onSuccess);
+            syncDate = DateTime.now().toString("HH:mm:ss", new Locale("pl"));
         } else {
             log("Redirecting to LoginActivity");
             Intent i = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(i);
             finish();
         }
-
+        editor.putString("lastSynchronization", syncDate);
+        editor.commit();
     }
 
 
