@@ -17,8 +17,8 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:dividerHeight="4px"
-        android:footerDividersEnabled="false"
-        android:headerDividersEnabled="false"
+        android:footerDividersEnabled="true"
+        android:headerDividersEnabled="true"
         android:scrollbars="none" />
 
 </RelativeLayout>

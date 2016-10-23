@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
                 setSupportActionBar(toolbar);
 
-                sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+                sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), timetable);
                 viewPager.setAdapter(sectionsPagerAdapter);
                 tabLayout.setupWithViewPager(viewPager);
 
@@ -155,16 +155,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+        Timetable dataset;
 
-        SectionsPagerAdapter(FragmentManager fm) {
+        SectionsPagerAdapter(FragmentManager fm, Timetable dataset) {
             super(fm);
+            this.dataset = dataset;
         }
 
         @Override
         public Fragment getItem(int position) {
             LocalDate date = TimetableUtils.getTabDate(position);
 //            log("Creating TabFragment for day " + date.toString("yyyy-MM-dd") + " at position " + position);
-            return TabFragment.newInstance(timetable.getSchoolDay(date));
+            return TabFragment.newInstance(dataset.getSchoolDay(date));
         }
 
         @Override

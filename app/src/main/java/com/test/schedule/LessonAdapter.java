@@ -10,7 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.afollestad.materialdialogs.MaterialDialog;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
@@ -43,7 +46,7 @@ class LessonAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        Lesson lesson = schoolDay.getLesson(position + 1);
+        final Lesson lesson = schoolDay.getLesson(position + 1);
 
         if (lesson == null) {
 
@@ -61,12 +64,12 @@ class LessonAdapter extends BaseAdapter {
                 convertView = inflater.inflate(R.layout.item_layout, null);
             }
 
-            TextView lessonName = (TextView) convertView.findViewById(R.id.lessonSubject);
-            TextView lessonTeacher = (TextView) convertView.findViewById(R.id.lessonTeacher);
+            final TextView lessonName = (TextView) convertView.findViewById(R.id.lessonSubject);
+            final TextView lessonTeacher = (TextView) convertView.findViewById(R.id.lessonTeacher);
             TextView lessonNumber = (TextView) convertView.findViewById(R.id.lessonNumber);
-            CardView badge = (CardView) convertView.findViewById(R.id.badge);
-            TextView badgeText = (TextView) convertView.findViewById(R.id.badgeText);
-            ImageView badgeIcon = (ImageView) convertView.findViewById(R.id.badgeIcon);
+            final CardView badge = (CardView) convertView.findViewById(R.id.badge);
+            final TextView badgeText = (TextView) convertView.findViewById(R.id.badgeText);
+            final ImageView badgeIcon = (ImageView) convertView.findViewById(R.id.badgeIcon);
 
             lessonNumber.setText(lesson.getLessonNumber() + ".");
             lessonName.setText(lesson.getSubject().getName());
@@ -95,10 +98,38 @@ class LessonAdapter extends BaseAdapter {
             if (LocalDate.now().equals(lesson.getDate()) && LocalTime.now().isAfter(lesson.getEndTime()) && prefs.getBoolean("greyOutFinishedLessons", true)) {
                 convertView.setAlpha(0.35f);
             }
-//            else {
-//                FrameLayout background = (FrameLayout) convertView.findViewById(R.id.background);
-//                background.setBackgroundColor(Color.argb(10, 0, 0, 0));
-//            }
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    MaterialDialog.Builder builder = new MaterialDialog.Builder(context).title(lesson.getSubject().getName()).positiveText("Zamknij");
+
+                    LayoutInflater inflater = LayoutInflater.from(context);
+                    View details = inflater.inflate(R.layout.details_layout, null);
+                    TextView teacher = (TextView) details.findViewById(R.id.details_teacher);
+                    TextView date = (TextView) details.findViewById(R.id.details_date);
+                    TextView hour = (TextView) details.findViewById(R.id.details_time);
+                    LinearLayout event = (LinearLayout) details.findViewById(R.id.event);
+
+                    teacher.setText(lesson.getTeacher().getName());
+                    date.setText(lesson.getDate().toString("d MMMM yyyy"));
+                    hour.setText(lesson.getEndTime().toString("hh:mm"));
+
+                    //TODO wyświetlanie poprawnych godzin rozpoczęcia i zokńczenia + numeru lekcji
+
+                    if (lesson.getEvent() != null) {
+                        TextView eventName = (TextView) details.findViewById(R.id.details_event_name);
+                        TextView eventDescription = (TextView) details.findViewById(R.id.details_event_description);
+                        event.setVisibility(View.VISIBLE);
+                        eventName.setText(lesson.getEvent().getCategory());
+                        eventDescription.setText(lesson.getEvent().getDescription());
+                    } else {
+                        event.setVisibility(View.GONE);
+                    }
+
+                    //TODO Ogarnianie zastępstw i odwołań
+                    MaterialDialog dialog = builder.customView(details, true).show();
+                }
+            });
         }
         return convertView;
     }
