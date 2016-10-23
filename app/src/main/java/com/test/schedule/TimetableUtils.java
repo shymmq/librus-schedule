@@ -1,9 +1,16 @@
 package com.test.schedule;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Locale;
 
 class TimetableUtils {
@@ -25,8 +32,8 @@ class TimetableUtils {
         return Days.daysBetween(getStartDate(), getWeekStart().plusWeeks(2)).getDays() - 4;
     }
 
-    static String getTabTitle(int index, boolean displayDates) {
-        return getTitle(getTabDate(index), displayDates);
+    static String getTabTitle(int index, boolean displayDates, boolean useRelativeTabNames) {
+        return getTitle(getTabDate(index), displayDates, useRelativeTabNames);
     }
 
     static LocalDate getTabDate(int index) {
@@ -38,19 +45,36 @@ class TimetableUtils {
         return startDate.plusDays(index);
     }
 
-    static String getTitle(LocalDate date, boolean displayDates) {
+    static String getTitle(LocalDate date, boolean displayDates, boolean useRelativeTabNames) {
 
         LocalDate now = LocalDate.now();
+        Calendar c = Calendar.getInstance();
+        DateFormat outputFormat = new SimpleDateFormat("EEEE");
         int diff = Days.daysBetween(now, date).getDays();
 
         if (diff == -1) {
-            return "Wczoraj";
+            if (useRelativeTabNames) {
+                return "Wczoraj";
+            } else {
+                c.add(Calendar.DAY_OF_WEEK, -1);
+                return outputFormat.format(c.getTime());
+            }
         } else if (diff == 0) {
-            return "Dzisiaj";
+            if (useRelativeTabNames) {
+                return "Dzisiaj";
+            } else {
+                return outputFormat.format(c.getTime());
+            }
         } else if (diff == 1) {
-            return "Jutro";
+            if (useRelativeTabNames) {
+                return "Jutro";
+            } else {
+                c.add(Calendar.DAY_OF_WEEK, 1);
+                return outputFormat.format(c.getTime());
+            }
         } else {
             boolean sameWeek = date.withDayOfWeek(1).getDayOfYear() == getStartDate().withDayOfWeek(1).getDayOfYear();
+
             if (sameWeek) {
                 return date.dayOfWeek().getAsText(new Locale("pl"));
             } else if (!displayDates) {

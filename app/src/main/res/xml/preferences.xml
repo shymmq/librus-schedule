@@ -18,13 +18,17 @@
             android:title="Pokaż granice tabeli" />
 
         <SwitchPreference
+            android:defaultValue="1"
             android:key="useRelativeTabNames"
             android:summaryOff="Relatywne nazwy zakładek nie będą używane."
             android:summaryOn="Relatywne nazwy zakładek będą używane."
             android:title="Wczoraj, dzisiaj i jutro" />
         <SwitchPreference
+            android:defaultValue="1"
             android:key="displayDates"
-            android:title="Używaj dat zamiast dni tygodnia" />
+            android:summaryOn="24 Paź., 25 Paź., 26 Paź. itd."
+            android:summaryOff="Poniedziałek, Wtorek, Środa itd."
+            android:title="Daty zamiast dni tygodnia" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Zaawansowane">
 

@@ -1,6 +1,8 @@
 package com.test.schedule;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,8 +25,7 @@ public class TabFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         SchoolDay schoolDay = getArguments().getParcelable("data");
 
@@ -35,6 +36,10 @@ public class TabFragment extends Fragment {
             LessonAdapter adapter;
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             ListView list = (ListView) rootView.findViewById(R.id.listView);
+            if (!PreferenceManager.getDefaultSharedPreferences(this.getContext()).getBoolean("showDividers", true)) {
+                list.setDivider(null);
+                list.setDividerHeight(0);
+            }
             adapter = new LessonAdapter(schoolDay, getActivity());
             list.setAdapter(adapter);
             return rootView;

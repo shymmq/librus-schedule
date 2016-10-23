@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public CharSequence getPageTitle(int position) {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            return TimetableUtils.getTabTitle(position, preferences.getBoolean("displayDates", true));
+            return TimetableUtils.getTabTitle(position, preferences.getBoolean("displayDates", true), preferences.getBoolean("useRelativeTabNames", true));
         }
     }
 }
