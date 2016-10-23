@@ -13,16 +13,11 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
@@ -30,63 +25,20 @@ import java.util.concurrent.CountDownLatch;
  * Created by szyme on 14.10.2016.
  */
 
-public class APIClient {
+class APIClient {
     private final String BASE_URL = "https://api.librus.pl/2.0";
     private final String AUTH_URL = "https://api.librus.pl/OAuth/Token";
+    private final String TAG = "schedule:log";
+    private final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
     private String access_token = null;
     private String refresh_token = null;
     private long valid_until = 0;
     private Context context;
     private OkHttpClient client = new OkHttpClient();
     private boolean debug = true;
-    private final String TAG = "schedule:log";
-    private final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
 
-    public APIClient(Context _context) {
+    APIClient(Context _context) {
         context = _context;
-    }
-
-    void log(String text) {
-        if (debug) {
-            Log.d(TAG, text);
-        }
-    }
-
-    interface Consumer {
-        void run(Object result);
-    }
-
-    private void APIRequest(final String endpoint, final Consumer onSuccess) {
-
-        Consumer onRefresh = new Consumer() {
-            @Override
-            public void run(Object result) {
-                Request request = new Request.Builder().addHeader("Authorization", "Bearer " + result)
-                        .url(BASE_URL + endpoint)
-                        .build();
-
-                client.newCall(request).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(Request request, IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    @Override
-                    public void onResponse(Response response) throws IOException {
-                        if (!response.isSuccessful())
-                            throw new IOException("Unexpected code " + response);
-                        try {
-                            onSuccess.run(new JSONObject(response.body().string()));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
-        };
-
-        refreshAccess(onRefresh);
-
     }
 
     static void login(String username, String password, final Runnable onSuccess, final Consumer onFailure, final Context c) {
@@ -125,6 +77,45 @@ public class APIClient {
                 }
             }
         });
+    }
+
+    private void log(String text) {
+        if (debug) {
+            Log.d(TAG, text);
+        }
+    }
+
+    private void APIRequest(final String endpoint, final Consumer onSuccess) {
+
+        Consumer onRefresh = new Consumer() {
+            @Override
+            public void run(Object result) {
+                Request request = new Request.Builder().addHeader("Authorization", "Bearer " + result)
+                        .url(BASE_URL + endpoint)
+                        .build();
+
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Request request, IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onResponse(Response response) throws IOException {
+                        if (!response.isSuccessful())
+                            throw new IOException("Unexpected code " + response);
+                        try {
+                            onSuccess.run(new JSONObject(response.body().string()));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        };
+
+        refreshAccess(onRefresh);
+
     }
 
     private void refreshAccess(final Consumer onSuccess) {
@@ -216,7 +207,7 @@ public class APIClient {
         APIRequest("/HomeWorks", onDownloaded);
     }
 
-    public void getEvents(final Consumer onSuccess) {
+    private void getEvents(final Consumer onSuccess) {
         //setup CountDownLatch
         final CountDownLatch latch = new CountDownLatch(2);
         Consumer countDown = new Consumer() {
@@ -263,7 +254,7 @@ public class APIClient {
 
     }
 
-    public void getTimetable(final Consumer onSuccess, LocalDate... weeks) {
+    private void getTimetable(final Consumer onSuccess, LocalDate... weeks) {
         //get current week start date
         final CountDownLatch timetablesLatch = new CountDownLatch(weeks.length);
         final JSONObject timetable = new JSONObject();
@@ -273,7 +264,7 @@ public class APIClient {
                 try {
                     JSONObject data = ((JSONObject) result).getJSONObject("Timetable");
                     Iterator iterator = data.keys();
-
+                    log("Downloaded timetable : " + String.valueOf(data));
                     while (iterator.hasNext()) {
 
                         String key = (String) iterator.next();
@@ -307,16 +298,7 @@ public class APIClient {
         onSuccess.run(timetable);
     }
 
-//    public void largeLog(String content) {
-//        if (content.length() > 4000) {
-//            Log.d(TAG, content.substring(0, 4000));
-//            largeLog(content.substring(4000));
-//        } else {
-//            Log.d(TAG, content);
-//        }
-//    }
-
-    public void update(Runnable onSuccess) {
+    void update(Runnable onSuccess) {
         final CountDownLatch latch = new CountDownLatch(2);
         Consumer countDown = new Consumer() {
             @Override
@@ -338,5 +320,18 @@ public class APIClient {
         editor.commit();
 
         onSuccess.run();
+    }
+
+//    public void largeLog(String content) {
+//        if (content.length() > 4000) {
+//            Log.d(TAG, content.substring(0, 4000));
+//            largeLog(content.substring(4000));
+//        } else {
+//            Log.d(TAG, content);
+//        }
+//    }
+
+    interface Consumer {
+        void run(Object result);
     }
 }

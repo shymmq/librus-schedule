@@ -2,15 +2,15 @@ package com.test.schedule;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,10 +25,10 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SectionsPagerAdapter sectionsPagerAdapter;
-    private final String TAG = "schedule:log";
-    private ViewPager viewPager;
     final int DAY_MS = 86400000;
+    private final String TAG = "schedule:log";
+    private SectionsPagerAdapter sectionsPagerAdapter;
+    private ViewPager viewPager;
     private boolean debug = true;
 
     private Timetable timetable;
@@ -91,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        APIClient c = new APIClient(getApplicationContext());
         switch (item.getItemId()) {
             case R.id.action_logout:
                 SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -113,9 +112,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void update() {
-
-    }
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        if (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("refresh", true)) {
+//            viewPager.setAdapter(sectionsPagerAdapter);
+//        }
+//        viewPager.setAdapter(sectionsPagerAdapter);
+//    }
 
     void display() {
         runOnUiThread(new Runnable() {
@@ -147,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
@@ -165,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            ;
             return TimetableUtils.getTabTitle(position);
         }
     }

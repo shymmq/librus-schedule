@@ -1,42 +1,26 @@
 package com.test.schedule;
 
 import android.content.Context;
-import android.graphics.Color;
+import android.content.SharedPreferences;
 import android.graphics.Paint;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.CardView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeComparator;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
-import org.w3c.dom.Text;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-
-/**
- * Created by szyme on 22.09.2016.
- */
-
-public class LessonAdapter extends BaseAdapter {
+class LessonAdapter extends BaseAdapter {
+    private static final String TAG = "schedule:log";
     private final Context context;
     private SchoolDay schoolDay;
-    private static final String TAG = "schedule:log";
 
-    public LessonAdapter(SchoolDay _schoolDay, Context _context) {
+    LessonAdapter(SchoolDay _schoolDay, Context _context) {
         this.schoolDay = _schoolDay;
         this.context = _context;
     }
@@ -106,7 +90,9 @@ public class LessonAdapter extends BaseAdapter {
             } else {
                 badge.setVisibility(View.GONE);
             }
-            if (LocalDate.now() == lesson.getDate() && LocalTime.now().isAfter(lesson.getEndTime())) {
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            if (LocalDate.now().equals(lesson.getDate()) && LocalTime.now().isAfter(lesson.getEndTime()) && prefs.getBoolean("greyOutFinishedLessons", true)) {
                 convertView.setAlpha(0.35f);
             }
 //            else {

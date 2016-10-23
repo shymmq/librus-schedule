@@ -1,20 +1,14 @@
 package com.test.schedule;
 
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
 
-import java.util.Date;
 import java.util.Locale;
 
-/**
- * Created by szyme on 22.10.2016.
- */
-
-public class TimetableUtils {
+class TimetableUtils {
 
     static LocalDate getStartDate() {
         int weekday = LocalDate.now().getDayOfWeek();
@@ -62,7 +56,7 @@ public class TimetableUtils {
             return "Dzisiaj";
         } else if (diff == 1) {
             return "Jutro";
-        } else if (date.withDayOfWeek(1).getDayOfYear() == now.withDayOfWeek(1).getDayOfYear()) {
+        } else if (date.withDayOfWeek(1).getDayOfYear() == getStartDate().withDayOfWeek(1).getDayOfYear()) {
             return date.dayOfWeek().getAsText(new Locale("pl"));
         } else {
             return date.toString("d MMM.", new Locale("pl"));
