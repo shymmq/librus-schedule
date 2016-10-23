@@ -1,7 +1,5 @@
 package com.test.schedule;
 
-import android.util.Log;
-
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
@@ -24,13 +22,11 @@ class TimetableUtils {
     }
 
     static int getDayCount() {
-        int dayOfWeek = LocalDate.now().getDayOfWeek();
-        int res = 10 - (Days.daysBetween(getWeekStart(), LocalDate.now()).getDays());
-        return dayOfWeek == DateTimeConstants.SATURDAY || dayOfWeek == DateTimeConstants.SUNDAY ? res - 2 : res;
+        return Days.daysBetween(getStartDate(), getWeekStart().plusWeeks(2)).getDays() - 4;
     }
 
-    static String getTabTitle(int index) {
-        return getTitle(getTabDate(index));
+    static String getTabTitle(int index, boolean displayDates) {
+        return getTitle(getTabDate(index), displayDates);
     }
 
     static LocalDate getTabDate(int index) {
@@ -42,24 +38,27 @@ class TimetableUtils {
         return startDate.plusDays(index);
     }
 
-    static String getTitle(LocalDate date) {
-
-        final String TAG = "schedule:log";
+    static String getTitle(LocalDate date, boolean displayDates) {
 
         LocalDate now = LocalDate.now();
         int diff = Days.daysBetween(now, date).getDays();
 
-        Log.d(TAG, "getTitle: diff= " + diff);
         if (diff == -1) {
             return "Wczoraj";
         } else if (diff == 0) {
             return "Dzisiaj";
         } else if (diff == 1) {
             return "Jutro";
-        } else if (date.withDayOfWeek(1).getDayOfYear() == getStartDate().withDayOfWeek(1).getDayOfYear()) {
-            return date.dayOfWeek().getAsText(new Locale("pl"));
         } else {
-            return date.toString("d MMM.", new Locale("pl"));
+            boolean sameWeek = date.withDayOfWeek(1).getDayOfYear() == getStartDate().withDayOfWeek(1).getDayOfYear();
+            if (sameWeek) {
+                return date.dayOfWeek().getAsText(new Locale("pl"));
+            } else if (!displayDates) {
+                return date.dayOfWeek().getAsText(new Locale("pl"));
+            } else {
+                return date.toString("d MMM.", new Locale("pl"));
+            }
         }
     }
 }
+

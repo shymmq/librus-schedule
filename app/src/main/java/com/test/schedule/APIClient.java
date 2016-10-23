@@ -322,14 +322,6 @@ class APIClient {
         onSuccess.run();
     }
 
-//    public void largeLog(String content) {
-//        if (content.length() > 4000) {
-//            Log.d(TAG, content.substring(0, 4000));
-//            largeLog(content.substring(4000));
-//        } else {
-//            Log.d(TAG, content);
-//        }
-//    }
 
     interface Consumer {
         void run(Object result);

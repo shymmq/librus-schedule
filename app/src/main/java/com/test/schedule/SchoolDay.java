@@ -2,30 +2,33 @@ package com.test.schedule;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.ArrayMap;
-import android.util.Log;
 
 import org.joda.time.LocalDate;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.Serializable;
 import java.text.ParseException;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.StringTokenizer;
 
 /**
  * Created by szyme on 15.10.2016.
  */
 
 public class SchoolDay implements Parcelable {
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public SchoolDay createFromParcel(Parcel in) {
+            return new SchoolDay(in);
+        }
+
+        @Override
+        public SchoolDay[] newArray(int size) {
+            return new SchoolDay[size];
+        }
+    };
     private final String TAG = "schedule:log";
     private final LocalDate date;
-    private HashMap<Integer, Lesson> lessons = new HashMap<>();
     boolean empty = true;
+    private HashMap<Integer, Lesson> lessons = new HashMap<>();
 
     public SchoolDay(HashMap<Integer, Lesson> lessons, LocalDate date) {
         this.lessons = lessons;
@@ -67,11 +70,6 @@ public class SchoolDay implements Parcelable {
 //        Log.d(TAG, "cleanUp: DONE: " + lessons.toString());
     }
 
-    public String getTitle() {
-        TimetableUtils.getTitle(date);
-        return null;
-    }
-
     public HashMap<Integer, Lesson> getLessons() {
         return lessons;
     }
@@ -83,17 +81,6 @@ public class SchoolDay implements Parcelable {
     public boolean isEmpty() {
         return empty;
     }
-
-    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
-        public SchoolDay createFromParcel(Parcel in) {
-            return new SchoolDay(in);
-        }
-
-        @Override
-        public SchoolDay[] newArray(int size) {
-            return new SchoolDay[size];
-        }
-    };
 
     @Override
     public int describeContents() {

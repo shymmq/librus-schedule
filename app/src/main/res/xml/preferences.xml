@@ -22,6 +22,9 @@
             android:summaryOff="Relatywne nazwy zakładek nie będą używane."
             android:summaryOn="Relatywne nazwy zakładek będą używane."
             android:title="Wczoraj, dzisiaj i jutro" />
+        <SwitchPreference
+            android:key="displayDates"
+            android:title="Używaj dat zamiast dni tygodnia" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Zaawansowane">
 

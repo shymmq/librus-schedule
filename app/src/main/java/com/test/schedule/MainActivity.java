@@ -30,7 +30,6 @@ public class MainActivity extends AppCompatActivity {
     private SectionsPagerAdapter sectionsPagerAdapter;
     private ViewPager viewPager;
     private boolean debug = true;
-
     private Timetable timetable;
 
     void log(String text) {
@@ -102,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 prefsEditor.commit();
                 Intent i = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(i);
+                finish();
                 return true;
             case R.id.action_settings:
                 Intent j = new Intent(MainActivity.this, SettingsActivity.class);
@@ -112,14 +112,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        if (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("refresh", true)) {
-//            viewPager.setAdapter(sectionsPagerAdapter);
-//        }
-//        viewPager.setAdapter(sectionsPagerAdapter);
-//    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        if (preferences.getBoolean("settings_changed", false)) {
+            log("Settings changed, restarting MainActivity");
+            preferences.edit().putBoolean("settings_changed", false).commit();
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
+        }
+    }
 
     void display() {
         runOnUiThread(new Runnable() {
@@ -144,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
                 log("Tab count : " + TimetableUtils.getDayCount());
                 log("Start date : " + TimetableUtils.getStartDate());
+                log("Week start : " + TimetableUtils.getWeekStart());
             }
         });
 
@@ -158,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             LocalDate date = TimetableUtils.getTabDate(position);
-            log("Creating TabFragment for day " + date.toString("yyyy-MM-dd") + " at position " + position);
+//            log("Creating TabFragment for day " + date.toString("yyyy-MM-dd") + " at position " + position);
             return TabFragment.newInstance(timetable.getSchoolDay(date));
         }
 
@@ -169,7 +174,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return TimetableUtils.getTabTitle(position);
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            return TimetableUtils.getTabTitle(position, preferences.getBoolean("displayDates", true));
         }
     }
 }
