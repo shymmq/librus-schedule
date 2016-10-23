@@ -18,6 +18,8 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
+import java.util.Locale;
+
 class LessonAdapter extends BaseAdapter {
     private static final String TAG = "schedule:log";
     private final Context context;
@@ -107,14 +109,16 @@ class LessonAdapter extends BaseAdapter {
                     View details = inflater.inflate(R.layout.details_layout, null);
                     TextView teacher = (TextView) details.findViewById(R.id.details_teacher);
                     TextView date = (TextView) details.findViewById(R.id.details_date);
-                    TextView hour = (TextView) details.findViewById(R.id.details_time);
+                    TextView startTime = (TextView) details.findViewById(R.id.details_start_time);
+                    TextView endTime = (TextView) details.findViewById(R.id.details_end_time);
+                    TextView lessonNumber = (TextView) details.findViewById(R.id.details_lesson_number);
                     LinearLayout event = (LinearLayout) details.findViewById(R.id.event);
 
                     teacher.setText(lesson.getTeacher().getName());
-                    date.setText(lesson.getDate().toString("d MMMM yyyy"));
-                    hour.setText(lesson.getEndTime().toString("hh:mm"));
-
-                    //TODO wyświetlanie poprawnych godzin rozpoczęcia i zokńczenia + numeru lekcji
+                    date.setText(lesson.getDate().toString("EEEE, d MMMM yyyy", new Locale("pl")));
+                    startTime.setText(lesson.getStartTime().toString("hh:mm"));
+                    endTime.setText(" - " + lesson.getEndTime().toString("hh:mm"));
+                    lessonNumber.setText(lesson.getLessonNumber() + ". lekcja");
 
                     if (lesson.getEvent() != null) {
                         TextView eventName = (TextView) details.findViewById(R.id.details_event_name);

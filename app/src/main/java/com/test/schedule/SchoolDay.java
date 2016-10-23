@@ -43,7 +43,7 @@ public class SchoolDay implements Parcelable {
 //                    Log.d(TAG, "SchoolDay: Creating empty Lesson");
                     lessons.put(i, null);
                 } else {
-                    lessons.put(i, new Lesson(data.getJSONArray(i).getJSONObject(0), i));
+                    lessons.put(i, new Lesson(data.getJSONArray(i).getJSONObject(0), i, date));
                     empty = false;
                 }
             } catch (JSONException | ParseException e) {
