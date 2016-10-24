@@ -27,6 +27,7 @@ public class Lesson implements Serializable {
     private boolean isCanceled;
     //    private DateTime dateTime;
     private LocalDate date;
+    private LocalTime startTime;
     private LocalTime endTime;
     private LocalTime startTime;
 
@@ -38,6 +39,7 @@ public class Lesson implements Serializable {
             this.isCanceled = data.getBoolean("IsCanceled");
             this.subject = new Subject(data.getJSONObject("Subject"));
             this.teacher = new Teacher(data.getJSONObject("Teacher"));
+            startTime = LocalTime.parse(data.getString("HourFrom"), DateTimeFormat.forPattern("HH:mm"));
             endTime = LocalTime.parse(data.getString("HourTo"), DateTimeFormat.forPattern("HH:mm"));
             startTime = LocalTime.parse(data.getString("HourFrom"), DateTimeFormat.forPattern("HH:mm"));
             this.date = date;
@@ -71,6 +73,10 @@ public class Lesson implements Serializable {
         return date;
     }
 
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
     public LocalTime getEndTime() {
         return endTime;
     }
@@ -81,7 +87,6 @@ public class Lesson implements Serializable {
 
     Subject getSubject() {
         return subject;
-
     }
 
     Teacher getTeacher() {
