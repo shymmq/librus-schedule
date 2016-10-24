@@ -20,6 +20,7 @@ import net.danlew.android.joda.JodaTimeAndroid;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -152,6 +153,11 @@ public class MainActivity extends AppCompatActivity {
                 tabLayout.setupWithViewPager(viewPager);
 
                 viewPager.setCurrentItem(0, true);
+
+                Lesson lastTodayLesson = timetable.getSchoolDay(LocalDate.now()).getLesson(timetable.getSchoolDay(LocalDate.now()).getLessons().size());
+                if (LocalDate.now().equals(lastTodayLesson.getDate()) && LocalTime.now().isAfter(lastTodayLesson.getEndTime())) {
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() + 1, true);
+                }
 
                 log("Tab count : " + TimetableUtils.getDayCount());
                 log("Start date : " + TimetableUtils.getStartDate());

@@ -59,8 +59,9 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_toEndOf="@+id/details_start_time"
-            android:fontFamily="sans-serif-thin"
+            android:textStyle="normal|bold"
             android:text=" - 9:40" />
+            <!--android:fontFamily="sans-serif-thin"-->
 
         <TextView
             android:id="@+id/details_lesson_number"
@@ -69,7 +70,7 @@
             android:layout_alignParentTop="true"
             android:layout_toEndOf="@+id/details_end_time"
             android:paddingLeft="8dp"
-            android:text="2. lekcja"
+            android:text="(2 lekcja)"
             android:textStyle="normal|bold" />
 
     </RelativeLayout>

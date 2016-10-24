@@ -3,6 +3,7 @@ package com.test.schedule;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -18,6 +20,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
+import java.util.List;
 import java.util.Locale;
 
 class LessonAdapter extends BaseAdapter {
@@ -72,6 +75,7 @@ class LessonAdapter extends BaseAdapter {
             final CardView badge = (CardView) convertView.findViewById(R.id.badge);
             final TextView badgeText = (TextView) convertView.findViewById(R.id.badgeText);
             final ImageView badgeIcon = (ImageView) convertView.findViewById(R.id.badgeIcon);
+            final ListView list = (ListView) convertView.findViewById(R.id.listView);
 
             lessonNumber.setText(lesson.getLessonNumber() + ".");
             lessonName.setText(lesson.getSubject().getName());
@@ -96,7 +100,30 @@ class LessonAdapter extends BaseAdapter {
                 badge.setVisibility(View.GONE);
             }
 
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            final SharedPreferences.Editor prefsEditor = prefs.edit();
+
+            if (LocalDate.now().equals(schoolDay.getLesson(schoolDay.getLessons().size()).getDate())) {
+                for (int i = 1; i < schoolDay.getLessons().size(); i++) {
+                    Lesson currentLesson = schoolDay.getLesson(i);
+
+                    if (currentLesson != null) {
+                        if (!currentLesson.isCanceled() && LocalDate.now().equals(currentLesson.getDate()) && LocalTime.now().isAfter(currentLesson.getStartTime()) && LocalTime.now().isBefore(currentLesson.getEndTime())) {
+                            TextView lessonSubject = (TextView) list.getChildAt(i).findViewById(R.id.lessonSubject);
+                            lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.BOLD);
+                        } else {
+                            //TextView lessonSubject = (TextView) list.getChildAt(i).findViewById(R.id.lessonSubject);
+                            //lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.NORMAL);
+                        }
+
+                        if (i == schoolDay.getLessons().size() && LocalDate.now().equals(currentLesson.getDate()) && LocalTime.now().isAfter(currentLesson.getEndTime())) {
+                            if (LocalDate.now().getDayOfWeek() == 5) {
+                            }
+                        }
+                    }
+                }
+            }
+
             if (LocalDate.now().equals(lesson.getDate()) && LocalTime.now().isAfter(lesson.getEndTime()) && prefs.getBoolean("greyOutFinishedLessons", true)) {
                 convertView.setAlpha(0.35f);
             }
@@ -115,9 +142,11 @@ class LessonAdapter extends BaseAdapter {
                     LinearLayout event = (LinearLayout) details.findViewById(R.id.event);
 
                     teacher.setText(lesson.getTeacher().getName());
-                    date.setText(lesson.getDate().toString("EEEE, d MMMM yyyy", new Locale("pl")));
-                    startTime.setText(lesson.getStartTime().toString("hh:mm"));
-                    endTime.setText(" - " + lesson.getEndTime().toString("hh:mm"));
+                    String datestring = lesson.getDate().toString("EEEE, d MMMM yyyy", new Locale("pl"));
+                    datestring = datestring.substring(0,1).toUpperCase() + datestring.substring(1).toLowerCase();
+                    date.setText(datestring);
+                    startTime.setText(lesson.getStartTime().toString("HH:mm"));
+                    endTime.setText(" - " + lesson.getEndTime().toString("HH:mm"));
                     lessonNumber.setText(lesson.getLessonNumber() + ". lekcja");
 
                     if (lesson.getEvent() != null) {

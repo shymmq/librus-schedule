@@ -49,24 +49,6 @@ public class TabFragment extends Fragment {
 
             Log.d(TAG, String.valueOf(schoolDay.getLessons().size()));
 
-            /*
-            for (int i = 1; i < schoolDay.getLessons().size(); i++) {
-                Lesson currentLesson = schoolDay.getLesson(i);
-
-                if (LocalDate.now().equals(currentLesson.getDate()) && LocalTime.now().isAfter(currentLesson.getStartTime()) && LocalTime.now().isBefore(currentLesson.getEndTime())) {
-                    TextView lessonSubject = (TextView) list.getChildAt(i).findViewById(R.id.lessonSubject);
-                    //lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.BOLD);
-                } else {
-                    //TextView lessonSubject = (TextView) list.getChildAt(i).findViewById(R.id.lessonSubject);
-                    //lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.NORMAL);
-                }
-
-                if (i == schoolDay.getLessons().size() && LocalDate.now().equals(currentLesson.getDate()) && LocalTime.now().isAfter(currentLesson.getEndTime())) {
-                    //Show next day or week.
-                }
-            }
-            */
-
             if (!PreferenceManager.getDefaultSharedPreferences(this.getContext()).getBoolean("showDividers", true)) {
                 list.setDivider(null);
                 list.setDividerHeight(0);

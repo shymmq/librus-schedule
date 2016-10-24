@@ -29,7 +29,6 @@ public class Lesson implements Serializable {
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private LocalTime startTime;
 
     Lesson(JSONObject data, int lessonNumber, LocalDate date) throws JSONException, ParseException {
         this.lessonNumber = lessonNumber;
@@ -41,7 +40,6 @@ public class Lesson implements Serializable {
             this.teacher = new Teacher(data.getJSONObject("Teacher"));
             startTime = LocalTime.parse(data.getString("HourFrom"), DateTimeFormat.forPattern("HH:mm"));
             endTime = LocalTime.parse(data.getString("HourTo"), DateTimeFormat.forPattern("HH:mm"));
-            startTime = LocalTime.parse(data.getString("HourFrom"), DateTimeFormat.forPattern("HH:mm"));
             this.date = date;
         }
         if (substitution) {
@@ -91,11 +89,6 @@ public class Lesson implements Serializable {
 
     Teacher getTeacher() {
         return teacher;
-    }
-
-
-    public LocalTime getStartTime() {
-        return startTime;
     }
 
     boolean isSubstitution() {
