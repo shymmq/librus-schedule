@@ -10,13 +10,60 @@
         android:layout_height="wrap_content"
         android:text="Nauczyciel" />
 
-    <TextView
-        android:id="@+id/details_teacher"
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/details_org_teacher"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="ktośtam jakiśtam -> " />
+
+        <TextView
+            android:id="@+id/details_teacher"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toEndOf="@+id/details_org_teacher"
+            android:text="Ktośtam inny"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textStyle="normal|bold" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/details_subject_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ktośtam jakiśtam"
-        android:textColor="?android:attr/textColorSecondary"
-        android:textStyle="normal|bold" />
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/subject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:text="Przedmiot" />
+
+        <TextView
+            android:id="@+id/details_org_subject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/subject"
+            android:text="Fizyka -> " />
+
+        <TextView
+            android:id="@+id/details_subject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/subject"
+            android:layout_toEndOf="@+id/details_org_subject"
+            android:text="Matematyka"
+            android:textStyle="normal|bold" />
+    </RelativeLayout>
 
     <TextView
         android:id="@+id/textView6"
@@ -59,7 +106,6 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_toEndOf="@+id/details_start_time"
-            android:fontFamily="sans-serif-thin"
             android:text=" - 9:40" />
 
         <TextView

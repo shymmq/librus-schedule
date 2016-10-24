@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -108,6 +109,10 @@ class LessonAdapter extends BaseAdapter {
                     LayoutInflater inflater = LayoutInflater.from(context);
                     View details = inflater.inflate(R.layout.details_layout, null);
                     TextView teacher = (TextView) details.findViewById(R.id.details_teacher);
+                    TextView orgTeacher = (TextView) details.findViewById(R.id.details_org_teacher);
+                    TextView orgSubject = (TextView) details.findViewById(R.id.details_org_subject);
+                    TextView subject = (TextView) details.findViewById(R.id.details_subject);
+                    RelativeLayout subjectContainer = (RelativeLayout) details.findViewById(R.id.details_subject_container);
                     TextView date = (TextView) details.findViewById(R.id.details_date);
                     TextView startTime = (TextView) details.findViewById(R.id.details_start_time);
                     TextView endTime = (TextView) details.findViewById(R.id.details_end_time);
@@ -128,6 +133,18 @@ class LessonAdapter extends BaseAdapter {
                         eventDescription.setText(lesson.getEvent().getDescription());
                     } else {
                         event.setVisibility(View.GONE);
+                    }
+                    if (lesson.isSubstitution()) {
+                        if (lesson.getTeacher() != lesson.getOrgTeacher()) {
+                            orgTeacher.setText(lesson.getOrgTeacher().getName() + " -> ");
+                        }
+                        if (lesson.getSubject() != lesson.getOrgSubject()) {
+                            orgSubject.setText(lesson.getOrgSubject().getName() + " -> ");
+                            subject.setText(lesson.getSubject().getName());
+                        }
+                    } else {
+                        orgTeacher.setVisibility(View.GONE);
+                        subjectContainer.setVisibility(View.GONE);
                     }
 
                     //TODO Ogarnianie zastępstw i odwołań

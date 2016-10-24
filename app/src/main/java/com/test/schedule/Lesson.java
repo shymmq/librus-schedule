@@ -20,12 +20,11 @@ public class Lesson implements Serializable {
     private Event event = null;
     private Subject subject;
     private Teacher teacher;
-    //    private Subject orgSubject;
-//    private Teacher orgTeacher;
+    private Subject orgSubject = null;
+    private Teacher orgTeacher = null;
     private boolean substitution = false;
     private int lessonNumber;
     private boolean isCanceled;
-    //    private DateTime dateTime;
     private LocalDate date;
     private LocalTime endTime;
     private LocalTime startTime;
@@ -34,37 +33,35 @@ public class Lesson implements Serializable {
         this.lessonNumber = lessonNumber;
 //        Log.d(TAG, "Creating lesson from JSON:   " + data.toString());
         if (data.length() > 0) {
-            this.substitution = data.getBoolean("IsSubstitutionClass");
             this.isCanceled = data.getBoolean("IsCanceled");
             this.subject = new Subject(data.getJSONObject("Subject"));
             this.teacher = new Teacher(data.getJSONObject("Teacher"));
             endTime = LocalTime.parse(data.getString("HourTo"), DateTimeFormat.forPattern("HH:mm"));
             startTime = LocalTime.parse(data.getString("HourFrom"), DateTimeFormat.forPattern("HH:mm"));
             this.date = date;
+            this.substitution = data.getBoolean("IsSubstitutionClass");
+            if (substitution) {
+                this.orgTeacher = new Teacher(data.getJSONObject("orgTeacher"));
+                this.orgSubject = new Subject(data.getJSONObject("orgSubject"));
+            }
         }
-        if (substitution) {
-//                this.orgTeacher = new Teacher(data.getJSONObject("orgTeacher"));
-//                this.orgSubject = new Subject(data.getJSONObject("orgSubject"));
-        } else {
-//                this.orgSubject = this.subject;
-//                this.orgTeacher = this.teacher;
-        }
+
     }
 
     Event getEvent() {
         return event;
     }
-    //    public Lesson(Subject subject, Teacher teacher, Subject orgSubject, Teacher orgTeacher, int lessonNumber) {
-//        this.subject = subject;
-//        this.teacher = teacher;
-//        this.orgSubject = orgSubject;
-//        this.orgTeacher = orgTeacher;
-//        this.lessonNumber = lessonNumber;
-//        this.substitution = true;
-//    }
 
     void setEvent(Event event) {
         this.event = event;
+    }
+
+    public Subject getOrgSubject() {
+        return orgSubject;
+    }
+
+    public Teacher getOrgTeacher() {
+        return orgTeacher;
     }
 
     public LocalDate getDate() {
