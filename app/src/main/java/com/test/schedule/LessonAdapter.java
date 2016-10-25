@@ -13,7 +13,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -21,7 +20,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
-import java.util.List;
 import java.util.Locale;
 
 class LessonAdapter extends BaseAdapter {
@@ -53,8 +51,11 @@ class LessonAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(context);
         final Lesson lesson = schoolDay.getLesson(position + 1);
+        final Lesson prevLesson = schoolDay.getLesson(position);
 
         if (lesson == null) {
+
+            //EMPTY LESSON
 
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.empty_item_layout, null);
@@ -66,67 +67,74 @@ class LessonAdapter extends BaseAdapter {
 
         } else {
 
+            //LESSON
+
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.item_layout, null);
             }
 
-            final TextView lessonName = (TextView) convertView.findViewById(R.id.lessonSubject);
+            final TextView lessonSubject = (TextView) convertView.findViewById(R.id.lessonSubject);
             final TextView lessonTeacher = (TextView) convertView.findViewById(R.id.lessonTeacher);
-            TextView lessonNumber = (TextView) convertView.findViewById(R.id.lessonNumber);
-            final CardView badge = (CardView) convertView.findViewById(R.id.badge);
+            final TextView lessonNumber = (TextView) convertView.findViewById(R.id.lessonNumber);
             final TextView badgeText = (TextView) convertView.findViewById(R.id.badgeText);
+            final CardView badge = (CardView) convertView.findViewById(R.id.badge);
             final ImageView badgeIcon = (ImageView) convertView.findViewById(R.id.badgeIcon);
-            final ListView list = (ListView) convertView.findViewById(R.id.listView);
 
             lessonNumber.setText(lesson.getLessonNumber() + ".");
-            lessonName.setText(lesson.getSubject().getName());
+            lessonSubject.setText(lesson.getSubject().getName());
             lessonTeacher.setText(lesson.getTeacher().getName());
 
             if (lesson.isCanceled()) {
-                lessonName.setPaintFlags(lessonName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                lessonTeacher.setPaintFlags(lessonTeacher.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
 
+                //canceled
+
+                lessonSubject.setPaintFlags(lessonSubject.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                lessonTeacher.setPaintFlags(lessonTeacher.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                 badge.setVisibility(View.VISIBLE);
                 badgeText.setText("odwołane");
                 badgeIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_cancel_black_24dp, context.getTheme()));
             } else if (lesson.getEvent() != null) {
+
+                //event
+
                 badge.setVisibility(View.VISIBLE);
                 badgeText.setText(lesson.getEvent().getCategory());
                 badgeIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_event_black_24dp, context.getTheme()));
             } else if (lesson.isSubstitution()) {
+
+                //substitution
+
                 badge.setVisibility(View.VISIBLE);
                 badgeText.setText("zastępstwo");
                 badgeIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_swap_horiz_black_24dp, context.getTheme()));
             } else {
+
+                //none
+
                 badge.setVisibility(View.GONE);
             }
 
             final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            final SharedPreferences.Editor prefsEditor = prefs.edit();
 
-            if (LocalDate.now().equals(schoolDay.getLesson(schoolDay.getLessons().size()).getDate())) {
-                for (int i = 1; i < schoolDay.getLessons().size(); i++) {
-                    Lesson currentLesson = schoolDay.getLesson(i);
+            if (LocalDate.now().equals(lesson.getDate())) {
 
-                    if (currentLesson != null) {
-                        if (!currentLesson.isCanceled() && LocalDate.now().equals(currentLesson.getDate()) && LocalTime.now().isAfter(currentLesson.getStartTime()) && LocalTime.now().isBefore(currentLesson.getEndTime())) {
-                            TextView lessonSubject = (TextView) list.getChildAt(i).findViewById(R.id.lessonSubject);
-                            lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.BOLD);
-                        } else {
-                            //TextView lessonSubject = (TextView) list.getChildAt(i).findViewById(R.id.lessonSubject);
-                            //lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.NORMAL);
-                        }
+                //if today:
 
-                        if (i == schoolDay.getLessons().size() && LocalDate.now().equals(currentLesson.getDate()) && LocalTime.now().isAfter(currentLesson.getEndTime())) {
-                            if (LocalDate.now().getDayOfWeek() == 5) {
-                            }
-                        }
-                    }
+                LocalTime timeNow = LocalTime.now();
+
+                if (timeNow.isAfter(lesson.getEndTime()) && prefs.getBoolean("greyOutFinishedLessons", false)) {
+
+                    //lesson finished
+
+                    convertView.setAlpha(0.35f);
+
+                } else if (prevLesson != null && prefs.getBoolean("currentLessonBold", false) && timeNow.isAfter(prevLesson.getEndTime()) && timeNow.isBefore(lesson.getEndTime())) {
+
+                    //current lesson
+
+                    lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.BOLD);
+
                 }
-            }
-
-            if (LocalDate.now().equals(lesson.getDate()) && LocalTime.now().isAfter(lesson.getEndTime()) && prefs.getBoolean("greyOutFinishedLessons", true)) {
-                convertView.setAlpha(0.35f);
             }
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -148,7 +156,6 @@ class LessonAdapter extends BaseAdapter {
 
                     teacher.setText(lesson.getTeacher().getName());
                     String datestring = lesson.getDate().toString("EEEE, d MMMM yyyy", new Locale("pl"));
-                    datestring = datestring.substring(0,1).toUpperCase() + datestring.substring(1).toLowerCase();
                     date.setText(datestring);
                     startTime.setText(lesson.getStartTime().toString("HH:mm"));
                     endTime.setText(" - " + lesson.getEndTime().toString("HH:mm"));

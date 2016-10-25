@@ -9,7 +9,10 @@
             android:summaryOff="Zakończone lekcje nie będą przyciemnione."
             android:summaryOn="Zakończone lekcje będą przyciemnione."
             android:title="Wyszarzaj zakończone lekcje" />
-
+        <SwitchPreference
+            android:defaultValue="1"
+            android:key="currentLessonBold"
+            android:title="Pogrubiaj nazwę bieżącej lekcji" />
         <SwitchPreference
             android:defaultValue="1"
             android:key="showDividers"
@@ -26,14 +29,14 @@
         <SwitchPreference
             android:defaultValue="1"
             android:key="displayDates"
-            android:summaryOn="24 Paź., 25 Paź., 26 Paź. itd."
             android:summaryOff="Poniedziałek, Wtorek, Środa itd."
+            android:summaryOn="24 Paź., 25 Paź., 26 Paź. itd."
             android:title="Daty zamiast dni tygodnia" />
         <EditTextPreference
-            android:key="lastSynchronization"
             android:id="@+id/edit_lastSync"
-            android:title="Ostatnia synchronizacja: "
-            android:enabled="false"/>
+            android:enabled="false"
+            android:key="lastSynchronization"
+            android:title="Ostatnia synchronizacja: " />
     </PreferenceCategory>
     <PreferenceCategory android:title="Zaawansowane">
 
