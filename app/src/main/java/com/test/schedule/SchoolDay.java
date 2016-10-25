@@ -82,6 +82,10 @@ public class SchoolDay implements Parcelable {
         return empty;
     }
 
+    public int size() {
+        return lessons.size();
+    }
+
     @Override
     public int describeContents() {
         return 0;

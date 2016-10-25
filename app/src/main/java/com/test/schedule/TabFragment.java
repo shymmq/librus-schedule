@@ -1,24 +1,12 @@
 package com.test.schedule;
 
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.TextView;
-
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalTime;
-
-import java.util.Locale;
 
 public class TabFragment extends Fragment {
     private static final String TAG = "schedule:log";
@@ -43,18 +31,13 @@ public class TabFragment extends Fragment {
             View rootView = inflater.inflate(R.layout.fragment_empty, container, false);
             return rootView;
         } else {
-            LessonAdapter adapter;
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            ListView list = (ListView) rootView.findViewById(R.id.listView);
-
-            Log.d(TAG, String.valueOf(schoolDay.getLessons().size()));
-
-            if (!PreferenceManager.getDefaultSharedPreferences(this.getContext()).getBoolean("showDividers", true)) {
-                list.setDivider(null);
-                list.setDividerHeight(0);
-            }
-            adapter = new LessonAdapter(schoolDay, getActivity());
-            list.setAdapter(adapter);
+            RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
+            recyclerView.setHasFixedSize(true);
+            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+            recyclerView.setLayoutManager(layoutManager);
+            RecyclerView.Adapter adapter = new LessonAdapter(schoolDay);
+            recyclerView.setAdapter(adapter);
             return rootView;
         }
     }

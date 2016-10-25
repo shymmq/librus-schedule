@@ -6,10 +6,12 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -22,127 +24,111 @@ import org.joda.time.LocalTime;
 
 import java.util.Locale;
 
-class LessonAdapter extends BaseAdapter {
+/**
+ * Created by szyme on 25.10.2016.
+ */
+public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonViewHolder> {
+
     private static final String TAG = "schedule:log";
-    private final Context context;
     private SchoolDay schoolDay;
 
-    LessonAdapter(SchoolDay _schoolDay, Context _context) {
-        this.schoolDay = _schoolDay;
-        this.context = _context;
+    public LessonAdapter(SchoolDay schoolDay) {
+        this.schoolDay = schoolDay;
     }
 
     @Override
-    public int getCount() {
-        return schoolDay.getLessons().size();
+    public LessonAdapter.LessonViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_layout, parent, false);
+        return new LessonViewHolder(v);
     }
 
     @Override
-    public Object getItem(int position) {
-        return null;
-    }
+    public void onBindViewHolder(LessonViewHolder holder, int position) {
 
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
+        Log.d(TAG, "onBindViewHolder: Data for current view: " + schoolDay.getLessons().values().toString());
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        LayoutInflater inflater = LayoutInflater.from(context);
         final Lesson lesson = schoolDay.getLesson(position + 1);
         final Lesson prevLesson = schoolDay.getLesson(position);
+        final Context context = holder.background.getContext();
 
         if (lesson == null) {
 
             //EMPTY LESSON
 
-            if (convertView == null) {
-                convertView = inflater.inflate(R.layout.empty_item_layout, null);
-            }
-
-            TextView index = (TextView) convertView.findViewById(R.id.lessonNumber);
-            index.setText(position + 1 + ".");
-            convertView.setAlpha(0.35f);
-
+            holder.lessonNumber.setText(position + 1 + ".");
+            holder.badge.setVisibility(View.GONE);
+            holder.lessonTeacher.setVisibility(View.GONE);
+            holder.lessonSubject.setVisibility(View.GONE);
+            holder.lessonEmpty.setVisibility(View.VISIBLE);
+            holder.background.setAlpha(0.4f);
         } else {
 
             //LESSON
 
-            if (convertView == null) {
-                convertView = inflater.inflate(R.layout.item_layout, null);
-            }
-
-            final TextView lessonSubject = (TextView) convertView.findViewById(R.id.lessonSubject);
-            final TextView lessonTeacher = (TextView) convertView.findViewById(R.id.lessonTeacher);
-            final TextView lessonNumber = (TextView) convertView.findViewById(R.id.lessonNumber);
-            final TextView badgeText = (TextView) convertView.findViewById(R.id.badgeText);
-            final CardView badge = (CardView) convertView.findViewById(R.id.badge);
-            final ImageView badgeIcon = (ImageView) convertView.findViewById(R.id.badgeIcon);
-
-            lessonNumber.setText(lesson.getLessonNumber() + ".");
-            lessonSubject.setText(lesson.getSubject().getName());
-            lessonTeacher.setText(lesson.getTeacher().getName());
+            holder.lessonNumber.setText(lesson.getLessonNumber() + ".");
+            holder.lessonSubject.setText(lesson.getSubject().getName());
+            holder.lessonTeacher.setText(lesson.getTeacher().getName());
 
             if (lesson.isCanceled()) {
 
                 //canceled
 
-                lessonSubject.setPaintFlags(lessonSubject.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                lessonTeacher.setPaintFlags(lessonTeacher.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                badge.setVisibility(View.VISIBLE);
-                badgeText.setText("odwołane");
-                badgeIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_cancel_black_24dp, context.getTheme()));
+                holder.lessonSubject.setPaintFlags(holder.lessonSubject.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                holder.lessonTeacher.setPaintFlags(holder.lessonTeacher.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                holder.badge.setVisibility(View.VISIBLE);
+                holder.badgeText.setText("odwołane");
+                holder.badgeIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_cancel_black_24dp, context.getTheme()));
             } else if (lesson.getEvent() != null) {
 
                 //event
 
-                badge.setVisibility(View.VISIBLE);
-                badgeText.setText(lesson.getEvent().getCategory());
-                badgeIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_event_black_24dp, context.getTheme()));
+                holder.badge.setVisibility(View.VISIBLE);
+                holder.badgeText.setText(lesson.getEvent().getCategory());
+                holder.badgeIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_event_black_24dp, context.getTheme()));
             } else if (lesson.isSubstitution()) {
 
                 //substitution
 
-                badge.setVisibility(View.VISIBLE);
-                badgeText.setText("zastępstwo");
-                badgeIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_swap_horiz_black_24dp, context.getTheme()));
+                holder.badge.setVisibility(View.VISIBLE);
+                holder.badgeText.setText("zastępstwo");
+                holder.badgeIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_swap_horiz_black_24dp, context.getTheme()));
             } else {
 
                 //none
 
-                badge.setVisibility(View.GONE);
+                holder.badge.setVisibility(View.GONE);
             }
-
-            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
             if (LocalDate.now().equals(lesson.getDate())) {
 
                 //if today:
 
                 LocalTime timeNow = LocalTime.now();
+                final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
                 if (timeNow.isAfter(lesson.getEndTime()) && prefs.getBoolean("greyOutFinishedLessons", false)) {
 
                     //lesson finished
 
-                    convertView.setAlpha(0.35f);
+                    holder.background.setAlpha(0.5f);
 
                 } else if (prevLesson != null && prefs.getBoolean("currentLessonBold", false) && timeNow.isAfter(prevLesson.getEndTime()) && timeNow.isBefore(lesson.getEndTime())) {
 
                     //current lesson
 
-                    lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.BOLD);
+                    holder.lessonSubject.setTypeface(holder.lessonSubject.getTypeface(), Typeface.BOLD);
 
                 }
             }
-            convertView.setOnClickListener(new View.OnClickListener() {
+            holder.background.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     MaterialDialog.Builder builder = new MaterialDialog.Builder(context).title(lesson.getSubject().getName()).positiveText("Zamknij");
 
                     LayoutInflater inflater = LayoutInflater.from(context);
                     View details = inflater.inflate(R.layout.details_layout, null);
+
                     TextView teacher = (TextView) details.findViewById(R.id.details_teacher);
                     TextView orgTeacher = (TextView) details.findViewById(R.id.details_org_teacher);
                     TextView orgSubject = (TextView) details.findViewById(R.id.details_org_subject);
@@ -155,8 +141,7 @@ class LessonAdapter extends BaseAdapter {
                     LinearLayout event = (LinearLayout) details.findViewById(R.id.event);
 
                     teacher.setText(lesson.getTeacher().getName());
-                    String datestring = lesson.getDate().toString("EEEE, d MMMM yyyy", new Locale("pl"));
-                    date.setText(datestring);
+                    date.setText(lesson.getDate().toString("EEEE, d MMMM yyyy", new Locale("pl")));
                     startTime.setText(lesson.getStartTime().toString("HH:mm"));
                     endTime.setText(" - " + lesson.getEndTime().toString("HH:mm"));
                     lessonNumber.setText(lesson.getLessonNumber() + ". lekcja");
@@ -183,11 +168,39 @@ class LessonAdapter extends BaseAdapter {
                         subjectContainer.setVisibility(View.GONE);
                     }
 
-                    //TODO Ogarnianie zastępstw i odwołań
+                    //TODO Ogarnianie odwołań
                     MaterialDialog dialog = builder.customView(details, true).show();
                 }
             });
         }
-        return convertView;
+    }
+
+    @Override
+    public int getItemCount() {
+        return schoolDay.size();
+    }
+
+    public static class LessonViewHolder extends RecyclerView.ViewHolder {
+        public TextView
+                lessonSubject,
+                lessonEmpty,
+                lessonTeacher,
+                lessonNumber,
+                badgeText;
+        public CardView badge;
+        public ImageView badgeIcon;
+        public FrameLayout background;
+
+        public LessonViewHolder(View root) {
+            super(root);
+            lessonSubject = (TextView) root.findViewById(R.id.lessonSubject);
+            lessonTeacher = (TextView) root.findViewById(R.id.lessonTeacher);
+            lessonNumber = (TextView) root.findViewById(R.id.lessonNumber);
+            lessonEmpty = (TextView) root.findViewById(R.id.lessonEmpty);
+            badgeText = (TextView) root.findViewById(R.id.badgeText);
+            badge = (CardView) root.findViewById(R.id.badge);
+            badgeIcon = (ImageView) root.findViewById(R.id.badgeIcon);
+            background = (FrameLayout) root.findViewById(R.id.background);
+        }
     }
 }

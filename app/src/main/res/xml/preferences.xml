@@ -12,7 +12,7 @@
         <SwitchPreference
             android:defaultValue="1"
             android:key="currentLessonBold"
-            android:title="Pogrubiaj nazwę bieżącej lekcji" />
+            android:title="Pogrubiaj bieżącą lekcję" />
         <SwitchPreference
             android:defaultValue="1"
             android:key="showDividers"
