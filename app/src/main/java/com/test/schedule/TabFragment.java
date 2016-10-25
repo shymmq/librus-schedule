@@ -2,17 +2,17 @@ package com.test.schedule;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 
 public class TabFragment extends Fragment {
+    private static final String TAG = "schedule:log";
+
     public TabFragment() {
     }
-
-    private static final String TAG = "schedule:log";
 
     public static TabFragment newInstance(SchoolDay data) {
         TabFragment fragment = new TabFragment();
@@ -23,18 +23,22 @@ public class TabFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        LessonAdapter adapter;
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         SchoolDay schoolDay = getArguments().getParcelable("data");
-        Log.d(TAG, "onCreateView: Received data as parcelable");
-        assert schoolDay != null;
-        Log.d(TAG, "onCreateView: "+schoolDay.getLessons().keySet().toString());
-        ListView list = (ListView) rootView.findViewById(R.id.listView);
-        adapter = new LessonAdapter(schoolDay, getActivity());
-        list.setAdapter(adapter);
-        return rootView;
+
+        if (schoolDay == null || schoolDay.isEmpty()) {
+            View rootView = inflater.inflate(R.layout.fragment_empty, container, false);
+            return rootView;
+        } else {
+            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
+            recyclerView.setHasFixedSize(true);
+            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+            recyclerView.setLayoutManager(layoutManager);
+            RecyclerView.Adapter adapter = new LessonAdapter(schoolDay);
+            recyclerView.setAdapter(adapter);
+            return rootView;
+        }
     }
 }

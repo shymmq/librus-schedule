@@ -2,15 +2,15 @@ package com.test.schedule;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,24 +18,22 @@ import android.view.MenuItem;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
-import org.json.JSONArray;
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.Locale;
+
 
 public class MainActivity extends AppCompatActivity {
 
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-    private final String TAG = "schedule:log";
-    private ViewPager mViewPager;
     final int DAY_MS = 86400000;
+    private final String TAG = "schedule:log";
+    private SectionsPagerAdapter sectionsPagerAdapter;
+    private ViewPager viewPager;
     private boolean debug = true;
-
     private Timetable timetable;
 
     void log(String text) {
@@ -49,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         JodaTimeAndroid.init(this);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = prefs.edit();
+        String syncDate = prefs.getString("lastSynchronization", null);
         long timeNow = System.currentTimeMillis();
         if (timeNow - prefs.getLong("lastUpdate", 0) < DAY_MS) {
             log("Loading from cache");
@@ -62,13 +62,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
             client.update(onSuccess);
+            syncDate = DateTime.now().toString("HH:mm:ss", new Locale("pl"));
         } else {
             log("Redirecting to LoginActivity");
             Intent i = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(i);
             finish();
         }
-
+        editor.putString("lastSynchronization", syncDate);
+        editor.commit();
     }
 
 
@@ -76,15 +78,12 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         try {
-            JSONArray eventsJson = new JSONArray(prefs.getString("events", ""));
-            JSONObject timetableJson = new JSONObject(prefs.getString("timetable", ""));
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-            Date weekStart = df.parse(prefs.getString("week_start", null));
-            Timetable res = new Timetable(timetableJson, weekStart);
-            res.setEvents(eventsJson);
+            JSONObject eventsJSON = new JSONObject(prefs.getString("events", ""));
+            JSONObject timetableJSON = new JSONObject(prefs.getString("timetable", ""));
+            Timetable res = new Timetable(timetableJSON, eventsJSON);
             log("loaded timetable from sharedprefs");
             return res;
-        } catch (JSONException | ParseException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
         return null;
@@ -99,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        APIClient c = new APIClient(getApplicationContext());
         switch (item.getItemId()) {
             case R.id.action_logout:
                 SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -111,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
                 prefsEditor.commit();
                 Intent i = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(i);
+                finish();
                 return true;
             case R.id.action_settings:
                 Intent j = new Intent(MainActivity.this, SettingsActivity.class);
@@ -121,70 +120,77 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void update() {
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        if (preferences.getBoolean("settings_changed", false)) {
+            log("Settings changed, restarting MainActivity");
+            preferences.edit().putBoolean("settings_changed", false).commit();
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
+        }
     }
 
     void display() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                log("Loading timetable...");
                 timetable = loadTimetable();
-                log("Timetable loaded, starting MainActivity");
+
                 setTheme(R.style.AppTheme_NoActionBar);
                 setContentView(R.layout.activity_main);
-                mViewPager = (ViewPager) findViewById(R.id.container);
+
+                viewPager = (ViewPager) findViewById(R.id.container);
                 Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
                 TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+
                 setSupportActionBar(toolbar);
-                mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-                mViewPager.setAdapter(mSectionsPagerAdapter);
-                tabLayout.setupWithViewPager(mViewPager);
-                Calendar calendar = Calendar.getInstance();
-                int day = Math.min(calendar.get(Calendar.DAY_OF_WEEK) - 2, 4);
-//                int day = 3;
-                mViewPager.setCurrentItem(day, true);
+
+                sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), timetable);
+                viewPager.setAdapter(sectionsPagerAdapter);
+                tabLayout.setupWithViewPager(viewPager);
+
+                viewPager.setCurrentItem(0, true);
+
+                Lesson lastTodayLesson = timetable.getSchoolDay(LocalDate.now()).getLesson(timetable.getSchoolDay(LocalDate.now()).getLessons().size());
+                if (LocalDate.now().equals(lastTodayLesson.getDate()) && LocalTime.now().isAfter(lastTodayLesson.getEndTime())) {
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() + 1, true);
+                }
+
+                log("Tab count : " + TimetableUtils.getDayCount());
+                log("Start date : " + TimetableUtils.getStartDate());
+                log("Week start : " + TimetableUtils.getWeekStart());
             }
         });
 
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+        Timetable dataset;
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        SectionsPagerAdapter(FragmentManager fm, Timetable dataset) {
             super(fm);
+            this.dataset = dataset;
         }
 
         @Override
         public Fragment getItem(int position) {
-            return TabFragment.newInstance(timetable.getSchoolDay(position));
+            LocalDate date = TimetableUtils.getTabDate(position);
+//            log("Creating TabFragment for day " + date.toString("yyyy-MM-dd") + " at position " + position);
+            return TabFragment.newInstance(dataset.getSchoolDay(date));
         }
 
         @Override
         public int getCount() {
-            return 5;
+            return TimetableUtils.getDayCount();
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "Poniedziałek";
-                case 1:
-                    return "Wtorek";
-                case 2:
-                    return "Środa";
-                case 3:
-                    return "Czwartek";
-                case 4:
-                    return "Piątek";
-                case 5:
-                    return "Sobota";
-                case 6:
-                    return "Niedziela";
-            }
-            return null;
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            return TimetableUtils.getTabTitle(position, preferences.getBoolean("displayDates", true), preferences.getBoolean("useRelativeTabNames", true));
         }
     }
 }

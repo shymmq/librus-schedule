@@ -12,44 +12,77 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import org.joda.time.LocalDate;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by szyme on 14.10.2016.
  */
 
-public class APIClient {
+class APIClient {
     private final String BASE_URL = "https://api.librus.pl/2.0";
     private final String AUTH_URL = "https://api.librus.pl/OAuth/Token";
+    private final String TAG = "schedule:log";
+    private final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
     private String access_token = null;
     private String refresh_token = null;
     private long valid_until = 0;
     private Context context;
     private OkHttpClient client = new OkHttpClient();
     private boolean debug = true;
-    private final String TAG = "schedule:log";
-    private final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
 
-    public APIClient(Context _context) {
+    APIClient(Context _context) {
         context = _context;
     }
 
-    void log(String text) {
+    static void login(String username, String password, final Runnable onSuccess, final Consumer onFailure, final Context c) {
+        final String AUTH_URL = "https://api.librus.pl/OAuth/Token";
+        final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(AUTH_URL)
+                .header("Authorization", "Basic " + auth_token)
+                .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), "username=" + username + "&password=" + password + "&grant_type=password&librus_long_term_token=1"))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (!response.isSuccessful())
+                    onFailure.run(response.code());
+                try {
+                    JSONObject responseJSON = new JSONObject(response.body().string());
+
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(c).edit();
+
+                    editor.putString("refresh_token", responseJSON.getString("refresh_token"));
+                    editor.putString("access_token", responseJSON.getString("access_token"));
+                    editor.putLong("valid_until", System.currentTimeMillis() + responseJSON.getLong("expires_in"));
+                    editor.putBoolean("logged_in", true);
+                    editor.commit();
+                    onSuccess.run();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private void log(String text) {
         if (debug) {
             Log.d(TAG, text);
         }
-    }
-
-    interface Consumer {
-        void run(Object result);
     }
 
     private void APIRequest(final String endpoint, final Consumer onSuccess) {
@@ -85,51 +118,13 @@ public class APIClient {
 
     }
 
-    static void login(String username, String password, final Runnable onSuccess, final Consumer onFailure, final Context c) {
-        final String AUTH_URL = "https://api.librus.pl/OAuth/Token";
-        final String auth_token = "MzU6NjM2YWI0MThjY2JlODgyYjE5YTMzZjU3N2U5NGNiNGY=";
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(AUTH_URL)
-                .header("Authorization", "Basic " + auth_token)
-                .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), "username=" + username + "&password=" + password + "&grant_type=password&librus_long_term_token=1"))
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                if (!response.isSuccessful())
-                    onFailure.run(response.code());
-                try {
-                    JSONObject responseJSON = new JSONObject(response.body().string());
-
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(c).edit();
-
-                    editor.putString("refresh_token", responseJSON.getString("refresh_token"));
-                    editor.putString("access_token", responseJSON.getString("access_token"));
-                    editor.putLong("valid_until", System.currentTimeMillis() + responseJSON.getLong("expires_in"));
-                    editor.putBoolean("logged_in",true);
-                    editor.commit();
-                    onSuccess.run();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
     private void refreshAccess(final Consumer onSuccess) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        if (!prefs.contains("valid_until") || !prefs.contains("access_token") || !prefs.contains("refresh_token")) {
+        if (!prefs.contains("refresh_token")) {
             throw new Error("Client not logged in");
         } else {
-            valid_until = prefs.getLong("valid_until", 0);
-            if (valid_until < System.currentTimeMillis()) {
+            if (
+                    !prefs.contains("valid_until") || !prefs.contains("access_token") || prefs.getLong("valid_until", 0) < System.currentTimeMillis()) {
                 //request access with refresh_token
                 refresh_token = prefs.getString("refresh_token", null);
 
@@ -212,7 +207,7 @@ public class APIClient {
         APIRequest("/HomeWorks", onDownloaded);
     }
 
-    public void getEvents(final Consumer onSuccess) {
+    private void getEvents(final Consumer onSuccess) {
         //setup CountDownLatch
         final CountDownLatch latch = new CountDownLatch(2);
         Consumer countDown = new Consumer() {
@@ -236,16 +231,19 @@ public class APIClient {
             JSONObject categories = new JSONObject(prefs.getString("categories", "{}"));
             JSONObject events = new JSONObject(prefs.getString("event_entries", "{}"));
             JSONArray eventArray = events.getJSONArray("HomeWorks");
-            JSONArray res = new JSONArray();
+            JSONObject res = new JSONObject();
             for (int eventIndex = 0; eventIndex < eventArray.length(); eventIndex++) {
                 JSONObject event = eventArray.getJSONObject(eventIndex);
-                int categoryId = event.getJSONObject("Category").getInt("Id");
                 JSONObject resEvent = new JSONObject();
+                int categoryId = event.getJSONObject("Category").getInt("Id");
+                String date = event.getString("Date");
                 resEvent.put("Category", categories.get(String.valueOf(categoryId)));
                 resEvent.put("Description", event.getString("Content"));
                 resEvent.put("LessonNo", event.getString("LessonNo"));
-                resEvent.put("Date", event.getString("Date"));
-                res.put(resEvent);
+                if (!res.has(date)) {
+                    res.put(date, new JSONArray());
+                }
+                res.getJSONArray(date).put(resEvent);
             }
             log("Resolved events:   " + res.toString());
             prefs.edit().putString("events", res.toString()).commit();
@@ -256,46 +254,51 @@ public class APIClient {
 
     }
 
-    public void getTimetable(final Consumer onSuccess) {
+    private void getTimetable(final Consumer onSuccess, LocalDate... weeks) {
         //get current week start date
-        Calendar calendar = Calendar.getInstance();
-        calendar.setFirstDayOfWeek(Calendar.MONDAY);
-        calendar.add(Calendar.DAY_OF_YEAR, 2);
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        final String weekStart = df.format(calendar.getTime());
-
+        final CountDownLatch timetablesLatch = new CountDownLatch(weeks.length);
+        final JSONObject timetable = new JSONObject();
         Consumer onDownloaded = new Consumer() {
             @Override
             public void run(Object result) {
-                JSONObject data = (JSONObject) result;
-
                 try {
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-                    editor.putString("timetable", String.valueOf((data.getJSONObject("Timetable"))));
-                    editor.putString("week_start", weekStart);
-                    editor.commit();
+                    JSONObject data = ((JSONObject) result).getJSONObject("Timetable");
+                    Iterator iterator = data.keys();
+                    log("Downloaded timetable : " + String.valueOf(data));
+                    while (iterator.hasNext()) {
 
+                        String key = (String) iterator.next();
+                        timetable.put(key, data.getJSONArray(key));
 
+                    }
+                    timetablesLatch.countDown();
+                    onSuccess.run(data);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                onSuccess.run(data);
             }
         };
-        APIRequest("/Timetables?weekStart=" + weekStart, onDownloaded);
+
+        for (LocalDate weekStart : weeks) {
+            APIRequest("/Timetables?weekStart=" + weekStart.toString("yyyy-MM-dd"), onDownloaded);
+            log("Requested timetable for " + weekStart.toString("yyyy-MM-dd"));
+        }
+
+        try {
+            log("Waiting for timetables to download (" + weeks.length + ")");
+            timetablesLatch.await();
+            log("Timetables downloaded");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putString("timetable", timetable.toString());
+        editor.commit();
+        onSuccess.run(timetable);
     }
 
-//    public void largeLog(String content) {
-//        if (content.length() > 4000) {
-//            Log.d(TAG, content.substring(0, 4000));
-//            largeLog(content.substring(4000));
-//        } else {
-//            Log.d(TAG, content);
-//        }
-//    }
-
-    public void update(Runnable onSuccess) {
+    void update(Runnable onSuccess) {
         final CountDownLatch latch = new CountDownLatch(2);
         Consumer countDown = new Consumer() {
             @Override
@@ -303,7 +306,7 @@ public class APIClient {
                 latch.countDown();
             }
         };
-        getTimetable(countDown);
+        getTimetable(countDown, TimetableUtils.getWeekStart(), TimetableUtils.getWeekStart().plusWeeks(1));
         getEvents(countDown);
         log("Waiting for all tasks to finish..");
         try {
@@ -317,5 +320,10 @@ public class APIClient {
         editor.commit();
 
         onSuccess.run();
+    }
+
+
+    interface Consumer {
+        void run(Object result);
     }
 }

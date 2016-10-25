@@ -28,4 +28,5 @@ dependencies {
     compile 'com.android.support:cardview-v7:24.2.1'
     compile 'com.google.code.gson:gson:2.7'
     compile 'net.danlew:android.joda:2.9.4.2'
+    compile 'com.afollestad.material-dialogs:core:0.9.0.2'
 }
