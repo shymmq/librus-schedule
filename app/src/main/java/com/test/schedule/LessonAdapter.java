@@ -110,11 +110,11 @@ class LessonAdapter extends BaseAdapter {
 
                     if (currentLesson != null) {
                         if (!currentLesson.isCanceled() && LocalDate.now().equals(currentLesson.getDate()) && LocalTime.now().isAfter(currentLesson.getStartTime()) && LocalTime.now().isBefore(currentLesson.getEndTime())) {
-                            TextView lessonSubject = (TextView) list.getChildAt(i).findViewById(R.id.lessonSubject);
+                            TextView lessonSubject = (TextView) convertView.findViewById(R.id.lessonSubject);
                             lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.BOLD);
                         } else {
-                            //TextView lessonSubject = (TextView) list.getChildAt(i).findViewById(R.id.lessonSubject);
-                            //lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.NORMAL);
+                            TextView lessonSubject = (TextView) convertView.findViewById(R.id.lessonSubject);
+                            lessonSubject.setTypeface(lessonSubject.getTypeface(), Typeface.NORMAL);
                         }
 
                         if (i == schoolDay.getLessons().size() && LocalDate.now().equals(currentLesson.getDate()) && LocalTime.now().isAfter(currentLesson.getEndTime())) {
