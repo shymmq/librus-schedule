@@ -24,16 +24,14 @@ import org.joda.time.LocalTime;
 
 import java.util.Locale;
 
-/**
- * Created by szyme on 25.10.2016.
- */
-public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonViewHolder> {
+class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonViewHolder> {
 
     private static final String TAG = "schedule:log";
     private SchoolDay schoolDay;
 
-    public LessonAdapter(SchoolDay schoolDay) {
+    LessonAdapter(SchoolDay schoolDay) {
         this.schoolDay = schoolDay;
+        Log.d(TAG, "Data received in lesson adapter: " + schoolDay.getLessons().entrySet().toString());
     }
 
     @Override
@@ -45,8 +43,6 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
 
     @Override
     public void onBindViewHolder(LessonViewHolder holder, int position) {
-
-        Log.d(TAG, "onBindViewHolder: Data for current view: " + schoolDay.getLessons().values().toString());
 
         final Lesson lesson = schoolDay.getLesson(position + 1);
         final Lesson prevLesson = schoolDay.getLesson(position);
@@ -119,6 +115,11 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
 
                     holder.lessonSubject.setTypeface(holder.lessonSubject.getTypeface(), Typeface.BOLD);
 
+                } else if (prefs.getBoolean("currentLessonBold", false) && timeNow.isBefore(lesson.getEndTime()) && lesson.getLessonNumber() == 1) {
+
+                    //first lesson
+
+                    holder.lessonSubject.setTypeface(holder.lessonSubject.getTypeface(), Typeface.BOLD);
                 }
             }
             holder.background.setOnClickListener(new View.OnClickListener() {
@@ -180,18 +181,18 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
         return schoolDay.size();
     }
 
-    public static class LessonViewHolder extends RecyclerView.ViewHolder {
-        public TextView
+    static class LessonViewHolder extends RecyclerView.ViewHolder {
+        TextView
                 lessonSubject,
                 lessonEmpty,
                 lessonTeacher,
                 lessonNumber,
                 badgeText;
-        public CardView badge;
-        public ImageView badgeIcon;
+        CardView badge;
+        ImageView badgeIcon;
         public FrameLayout background;
 
-        public LessonViewHolder(View root) {
+        LessonViewHolder(View root) {
             super(root);
             lessonSubject = (TextView) root.findViewById(R.id.lessonSubject);
             lessonTeacher = (TextView) root.findViewById(R.id.lessonTeacher);
