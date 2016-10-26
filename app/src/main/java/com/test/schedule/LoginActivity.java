@@ -1,5 +1,6 @@
 package com.test.schedule;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -8,12 +9,15 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
@@ -40,7 +44,7 @@ public class LoginActivity extends AppCompatActivity {
         setTheme(R.style.AppTheme);
 
         setContentView(R.layout.activity_login);
-
+        
         final EditText passwordInput = (EditText) findViewById(R.id.password_input);
         final EditText usernameInput = (EditText) findViewById(R.id.username_input);
         final Button loginButton = (Button) findViewById(R.id.login_btn);
@@ -80,10 +84,9 @@ public class LoginActivity extends AppCompatActivity {
                                 progress.setVisibility(View.INVISIBLE);
                             }
                         });
-                        Snackbar snackbar = Snackbar
-                                .make(findViewById(R.id.coordinator), "Nieprawidłowe hasło, spróbuj ponownie", Snackbar.LENGTH_SHORT);
-
+                        Snackbar snackbar = Snackbar.make(findViewById(R.id.coordinator), "Nieprawidłowe hasło, spróbuj ponownie", Snackbar.LENGTH_SHORT);
                         snackbar.show();
+
                         Log.d(TAG, "run: login failure, code " + (int) result);
                     }
                 };
