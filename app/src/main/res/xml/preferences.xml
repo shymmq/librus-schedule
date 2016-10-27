@@ -13,12 +13,6 @@
             android:defaultValue="1"
             android:key="currentLessonBold"
             android:title="Pogrubiaj bieżącą lekcję" />
-        <SwitchPreference
-            android:defaultValue="1"
-            android:key="showDividers"
-            android:summaryOff="Dividery nie będą widoczne."
-            android:summaryOn="Dividery będą widoczne."
-            android:title="Pokaż granice tabeli" />
 
         <SwitchPreference
             android:defaultValue="1"
@@ -39,7 +33,17 @@
             android:title="Ostatnia synchronizacja: " />
     </PreferenceCategory>
     <PreferenceCategory android:title="Zaawansowane">
-
+        <SwitchPreference
+            android:defaultValue="1"
+            android:key="showDividers"
+            android:summaryOff="Dividery nie będą widoczne."
+            android:summaryOn="Dividery będą widoczne."
+            android:title="Pokaż granice tabeli" />
+        <ListPreference
+            android:entries="@array/entries"
+            android:entryValues="@array/values"
+            android:key="updateFrequency"
+            android:title="Częstotliwość synchronizacji" />
         <SwitchPreference
             android:defaultValue="0"
             android:key="showNotifications"

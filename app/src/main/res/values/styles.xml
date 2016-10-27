@@ -9,7 +9,6 @@
         <item name="windowActionBar">true</item>
         <item name="windowNoTitle">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">false</item>
-        <item name="android:fitsSystemWindows">true</item>
     </style>
 
     <style name="AppTheme.NoActionBar">

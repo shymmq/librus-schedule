@@ -2,6 +2,7 @@ package com.test.schedule;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import org.joda.time.LocalDate;
 import org.json.JSONArray;
@@ -10,11 +11,7 @@ import org.json.JSONException;
 import java.text.ParseException;
 import java.util.HashMap;
 
-/**
- * Created by szyme on 15.10.2016.
- */
-
-public class SchoolDay implements Parcelable {
+class SchoolDay implements Parcelable {
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
         public SchoolDay createFromParcel(Parcel in) {
             return new SchoolDay(in);
@@ -35,8 +32,9 @@ public class SchoolDay implements Parcelable {
         this.date = date;
     }
 
-    public SchoolDay(JSONArray data, LocalDate date) {
+    SchoolDay(JSONArray data, LocalDate date) {
         this.date = date;
+        Log.d(TAG, "SchoolDay: parsing json: " + date.toString() + data.toString());
         for (int i = 0; i < data.length(); i++) {
             try {
                 if (data.getJSONArray(i).length() == 0) {
@@ -50,10 +48,15 @@ public class SchoolDay implements Parcelable {
                 e.printStackTrace();
             }
         }
+        if (empty) {
+            Log.d(TAG, "SchoolDay: Empty");
+        } else {
+            Log.d(TAG, "SchoolDay: Done");
+        }
         cleanUp();
     }
 
-    public SchoolDay(Parcel in) {
+    private SchoolDay(Parcel in) {
         in.readMap(this.lessons, null);
         this.date = LocalDate.parse(in.readString());
     }
@@ -70,19 +73,27 @@ public class SchoolDay implements Parcelable {
 //        Log.d(TAG, "cleanUp: DONE: " + lessons.toString());
     }
 
-    public HashMap<Integer, Lesson> getLessons() {
+    LocalDate getDate() {
+        return date;
+    }
+
+    Lesson getLastLesson() {
+        return lessons.get(lessons.size());
+    }
+
+    HashMap<Integer, Lesson> getLessons() {
         return lessons;
     }
 
-    public Lesson getLesson(int i) {
+    Lesson getLesson(int i) {
         return lessons.get(i);
     }
 
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return empty;
     }
 
-    public int size() {
+    int size() {
         return lessons.size();
     }
 
