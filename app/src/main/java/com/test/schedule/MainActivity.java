@@ -47,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
         JodaTimeAndroid.init(this);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         SharedPreferences.Editor editor = prefs.edit();
+        if (prefs.getBoolean("is_first_launch", true)) {
+            initializeSharedPrefs(editor);
+        }
         String syncDate = prefs.getString("lastSynchronization", null);
         long timeNow = System.currentTimeMillis();
         if (timeNow - prefs.getLong("lastUpdate", 0) < DAY_MS) {
@@ -166,6 +169,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    void initializeSharedPrefs(SharedPreferences.Editor editor) {
+        editor.putString("access_token", "");
+        editor.putString("refresh_token", "");
+        editor.putString("categories", "");
+        editor.putString("event_entries", "");
+        editor.putString("events", "");
+        editor.putString("lastSynchronization", "");
+        editor.putString("timetable", "");
+
+        editor.putLong("lastUpdate", 0);
+        editor.putLong("valid_until", 0);
+
+        editor.putBoolean("logged_in", false);
+        editor.putBoolean("is_first_launch", false);
+        editor.putBoolean("currentLessonBold", true);
+        editor.putBoolean("displayDates", true);
+        editor.putBoolean("greyOutFinishedLessons", true);
+        editor.putBoolean("useRelativeTabNames", true);
+        editor.putBoolean("settings_changed", false);
+        editor.putBoolean("showNotifications", false);
+
+        editor.commit();
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
