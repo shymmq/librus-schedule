@@ -48,6 +48,8 @@ class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonViewHolder>
         final Lesson prevLesson = schoolDay.getLesson(position);
         final Context context = holder.background.getContext();
 
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
         if (lesson == null) {
 
             //EMPTY LESSON
@@ -101,7 +103,6 @@ class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonViewHolder>
                 //if today:
 
                 LocalTime timeNow = LocalTime.now();
-                final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
                 if (timeNow.isAfter(lesson.getEndTime()) && prefs.getBoolean("greyOutFinishedLessons", false)) {
 
